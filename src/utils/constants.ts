@@ -1,6 +1,6 @@
 // ─── Administrative ───────────────────────────────────────────────────────────
 export const REGION   = 'Region X (Northern Mindanao)';
-export const DIVISION = 'Bukidnon Division';
+export const DIVISION = 'Bukidnon Cluster I';
 export const DISTRICT = 'Manolo Fortich District I';
 
 // ─── Picker options ───────────────────────────────────────────────────────────

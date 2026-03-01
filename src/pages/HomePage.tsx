@@ -7,7 +7,7 @@ import {
 import {
   personAddOutline, listOutline, barChartOutline, informationCircleOutline,
   chevronForwardOutline, logOutOutline, schoolOutline, peopleOutline,
-  personOutline,
+  personOutline, closeOutline,
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -34,27 +34,33 @@ const HomePage: React.FC = () => {
   return (
     <IonPage>
       {/* ── Header ── */}
-      <IonHeader>
-        <IonToolbar color="primary">
-          <IonButtons slot="start">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8 }}>
+      <IonHeader style={{ boxShadow: 'none' }}>
+        <div style={s.headerWrap}>
+          {/* Top row: logo + logout */}
+          <div style={s.headerTop}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={s.logoCircle}>
-                <IonIcon icon={schoolOutline} style={{ color: '#fff', fontSize: 20 }} />
+                <IonIcon icon={schoolOutline} style={{ color: '#fff', fontSize: 22 }} />
               </div>
               <div>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15, letterSpacing: 0.2 }}>ALS Mapping System</div>
-                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>Community Mapping Tool</div>
+                <div style={s.headerTitle}>ALS Mapping System</div>
+                <div style={s.headerSub}>Community Mapping Tool</div>
               </div>
             </div>
-          </IonButtons>
-          <IonButtons slot="end">
-            <IonButton onClick={() => setUser(null)} title="Sign out">
-              <IonIcon slot="icon-only" icon={logOutOutline} />
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-        <div style={s.ribbon}>
-          {DISTRICT} &nbsp;&bull;&nbsp; {DIVISION} &nbsp;&bull;&nbsp; CY {currentYear}
+            <button
+              onClick={() => setUser(null)}
+              title="Sign out"
+              style={s.logoutBtn}
+            >
+              <IonIcon icon={logOutOutline} style={{ fontSize: 20, color: 'rgba(255,255,255,0.85)' }} />
+            </button>
+          </div>
+          {/* District pill */}
+          <div style={s.districtPill}>
+            <span style={s.districtPillText}>{DISTRICT}</span>
+            <span style={s.districtPillDot}>·</span>
+            <span style={s.districtPillText}>{DIVISION}</span>
+          </div>
         </div>
       </IonHeader>
 
@@ -125,7 +131,13 @@ const HomePage: React.FC = () => {
           <IonToolbar>
             <IonTitle>About This App</IonTitle>
             <IonButtons slot="end">
-              <IonButton onClick={() => setShowAbout(false)}>Close</IonButton>
+              <IonButton
+                onClick={() => setShowAbout(false)}
+                fill="clear"
+                style={{ '--color': '#6B7280', '--box-shadow': 'none', '--background': 'transparent', '--background-activated': 'rgba(0,0,0,0.06)', '--border-radius': '50px' } as any}
+              >
+                <IonIcon slot="icon-only" icon={closeOutline} style={{ fontSize: 22 }} />
+              </IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
@@ -170,17 +182,76 @@ const HomePage: React.FC = () => {
 };
 
 const s: Record<string, React.CSSProperties> = {
-  logoCircle: {
-    width: 36, height: 36, borderRadius: '50%',
-    background: 'rgba(255,255,255,0.2)',
+  headerWrap: {
+    background: 'linear-gradient(145deg, #1976d2 0%, #1565C0 50%, #0d47a1 100%)',
+    padding: '52px 20px 16px',
+    boxShadow: '0 4px 24px rgba(13,71,161,0.4)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  } as React.CSSProperties,
+  headerTop: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  } as React.CSSProperties,
+  headerTitle: {
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: 16,
+    letterSpacing: 0.1,
+    lineHeight: 1.2,
+  } as React.CSSProperties,
+  headerSub: {
+    color: 'rgba(255,255,255,0.65)',
+    fontSize: 11,
+    fontWeight: 500,
+    marginTop: 1,
+    letterSpacing: 0.3,
+  } as React.CSSProperties,
+  logoutBtn: {
+    width: 38, height: 38,
+    borderRadius: '50%',
+    border: '1.5px solid rgba(255,255,255,0.22)',
+    background: 'rgba(255,255,255,0.12)',
+    backdropFilter: 'blur(6px)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  ribbon: {
-    background: 'var(--ion-color-primary-shade)',
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 11, fontWeight: 700, textAlign: 'center',
-    padding: '5px 16px', letterSpacing: 0.5,
-  },
+    cursor: 'pointer',
+    padding: 0,
+    transition: 'background 0.18s ease',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  districtPill: {
+    alignSelf: 'flex-start',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    background: 'rgba(255,255,255,0.13)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    backdropFilter: 'blur(6px)',
+    borderRadius: 50,
+    padding: '5px 14px',
+  } as React.CSSProperties,
+  districtPillText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 0.3,
+  } as React.CSSProperties,
+  districtPillDot: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    fontWeight: 400,
+  } as React.CSSProperties,
+  logoCircle: {
+    width: 42, height: 42, borderRadius: 14,
+    background: 'rgba(255,255,255,0.18)',
+    border: '1.5px solid rgba(255,255,255,0.28)',
+    backdropFilter: 'blur(8px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    flexShrink: 0,
+  } as React.CSSProperties,
   welcomeBanner: {
     margin: '16px 16px 0',
     background: 'linear-gradient(135deg, #1565C0 0%, #0d47a1 100%)',
