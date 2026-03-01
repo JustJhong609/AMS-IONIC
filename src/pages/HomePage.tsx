@@ -6,7 +6,8 @@ import {
 } from '@ionic/react';
 import {
   personAddOutline, listOutline, barChartOutline, informationCircleOutline,
-  chevronForwardOutline, logOutOutline, schoolOutline,
+  chevronForwardOutline, logOutOutline, schoolOutline, peopleOutline,
+  personOutline,
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -17,15 +18,17 @@ const HomePage: React.FC = () => {
   const history = useHistory();
   const [showAbout, setShowAbout] = useState(false);
   const currentYear = new Date().getFullYear();
-  const total  = learners.length;
-  const males  = learners.filter(l => l.sex === 'Male').length;
+  const total   = learners.length;
+  const males   = learners.filter(l => l.sex === 'Male').length;
   const females = learners.filter(l => l.sex === 'Female').length;
+  const firstName = user?.name.split(' ')[0] ?? 'there';
+  const initials  = user?.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
 
   const menuItems = [
-    { icon: personAddOutline,  label: 'Add New Learner',  desc: 'Map a new ALS learner using Form 1',             color: '#2E7D32', path: '/learners/new' },
-    { icon: listOutline,       label: 'View All Learners', desc: `Browse & search ${total} mapped learner${total !== 1 ? 's' : ''}`, color: '#1565C0', path: '/learners' },
-    { icon: barChartOutline,   label: 'Analytics',         desc: 'View charts, breakdowns & insights',            color: '#7B1FA2', path: '/analytics' },
-    { icon: informationCircleOutline, label: 'About This App', desc: 'App details, district info & coverage',     color: '#0288D1', path: null },
+    { icon: personAddOutline,         label: 'Add New Learner',  desc: 'Map a new ALS learner using Form 1',              color: '#2E7D32', grad: 'linear-gradient(135deg,#43A047,#2E7D32)', path: '/learners/new' },
+    { icon: listOutline,              label: 'View All Learners', desc: `Browse & search ${total} mapped learner${total !== 1 ? 's' : ''}`, color: '#1565C0', grad: 'linear-gradient(135deg,#1976D2,#1565C0)', path: '/learners' },
+    { icon: barChartOutline,          label: 'Analytics',         desc: 'View charts, breakdowns & insights',             color: '#7B1FA2', grad: 'linear-gradient(135deg,#9C27B0,#7B1FA2)', path: '/analytics' },
+    { icon: informationCircleOutline, label: 'About This App',    desc: 'App details, district info & coverage',          color: '#0277BD', grad: 'linear-gradient(135deg,#039BE5,#0277BD)', path: null  },
   ];
 
   return (
@@ -35,89 +38,89 @@ const HomePage: React.FC = () => {
         <IonToolbar color="primary">
           <IonButtons slot="start">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8 }}>
-              <div style={styles.logoCircle}>
+              <div style={s.logoCircle}>
                 <IonIcon icon={schoolOutline} style={{ color: '#fff', fontSize: 20 }} />
               </div>
               <div>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15 }}>ALS Mapping System</div>
-                <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11 }}>Community Mapping Tool</div>
+                <div style={{ color: '#fff', fontWeight: 800, fontSize: 15, letterSpacing: 0.2 }}>ALS Mapping System</div>
+                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>Community Mapping Tool</div>
               </div>
             </div>
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton onClick={() => setUser(null)}>
+            <IonButton onClick={() => setUser(null)} title="Sign out">
               <IonIcon slot="icon-only" icon={logOutOutline} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
-        {/* Admin ribbon */}
-        <div style={styles.ribbon}>
-          {DISTRICT} &nbsp;|&nbsp; {DIVISION} &nbsp;|&nbsp; CY {currentYear}
+        <div style={s.ribbon}>
+          {DISTRICT} &nbsp;&bull;&nbsp; {DIVISION} &nbsp;&bull;&nbsp; CY {currentYear}
         </div>
       </IonHeader>
 
-      <IonContent>
-        {/* ── Welcome ── */}
-        <div style={styles.welcome}>
-          <div style={styles.greeting}>Hello, {user?.name.split(' ')[0]}</div>
-          <div style={styles.subGreeting}>
-            {total > 0
-              ? `You have ${total} mapped learner${total !== 1 ? 's' : ''} so far.`
-              : 'Get started by mapping your first learner.'}
+      <IonContent style={{ '--background': '#F1F5F9' } as React.CSSProperties}>
+
+        {/* ── Welcome banner ── */}
+        <div style={s.welcomeBanner}>
+          <div style={s.avatarCircle}>{initials}</div>
+          <div>
+            <div style={s.greeting}>Hello, {firstName}! 👋</div>
+            <div style={s.subGreeting}>
+              {total > 0
+                ? `You have ${total} mapped learner${total !== 1 ? 's' : ''} so far.`
+                : 'Get started by mapping your first learner.'}
+            </div>
           </div>
         </div>
 
         {/* ── Quick Stats ── */}
-        <IonCard style={styles.statBanner}>
-          <IonCardContent>
-            <div style={styles.statRow}>
-              <div style={styles.statItem}>
-                <div style={styles.statNum}>{total}</div>
-                <div style={styles.statCap}>Total</div>
+        <div style={s.statsRow}>
+          {[
+            { icon: peopleOutline,  val: total,   label: 'Total',  color: '#1565C0' },
+            { icon: personOutline,  val: males,   label: 'Male',   color: '#1976D2' },
+            { icon: personOutline,  val: females, label: 'Female', color: '#7B1FA2' },
+          ].map(st => (
+            <div key={st.label} style={s.statCard}>
+              <div style={{ ...s.statIcon, background: `${st.color}18` }}>
+                <IonIcon icon={st.icon} style={{ color: st.color, fontSize: 18 }} />
               </div>
-              <div style={styles.statDivider} />
-              <div style={styles.statItem}>
-                <div style={styles.statNum}>{males}</div>
-                <div style={styles.statCap}>Male</div>
-              </div>
-              <div style={styles.statDivider} />
-              <div style={styles.statItem}>
-                <div style={styles.statNum}>{females}</div>
-                <div style={styles.statCap}>Female</div>
-              </div>
+              <div style={{ ...s.statNum, color: st.color }}>{st.val}</div>
+              <div style={s.statCap}>{st.label}</div>
             </div>
-          </IonCardContent>
-        </IonCard>
+          ))}
+        </div>
 
         {/* ── Menu ── */}
-        <div className="section-title">Menu</div>
-        {menuItems.map(item => (
+        <div className="section-title">Quick Actions</div>
+        {menuItems.map((item, idx) => (
           <IonCard
             key={item.label}
-            style={styles.menuCard}
-            onClick={() => item.path ? history.push(item.path) : setShowAbout(true)}
             button
+            style={{ ...s.menuCard, animationDelay: `${idx * 0.07}s` }}
+            onClick={() => item.path ? history.push(item.path) : setShowAbout(true)}
           >
-            <IonCardContent>
-              <div style={styles.menuRow}>
-                <div style={{ ...styles.iconBox, background: `${item.color}18` }}>
-                  <IonIcon icon={item.icon} style={{ color: item.color, fontSize: 24 }} />
+            <IonCardContent style={{ padding: '14px 16px' }}>
+              <div style={s.menuRow}>
+                <div style={{ ...s.iconBox, background: item.grad }}>
+                  <IonIcon icon={item.icon} style={{ color: '#fff', fontSize: 22 }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={styles.menuLabel}>{item.label}</div>
-                  <div style={styles.menuDesc}>{item.desc}</div>
+                  <div style={s.menuLabel}>{item.label}</div>
+                  <div style={s.menuDesc}>{item.desc}</div>
                 </div>
-                <IonIcon icon={chevronForwardOutline} style={{ color: '#9E9E9E' }} />
+                <div style={s.chevronWrap}>
+                  <IonIcon icon={chevronForwardOutline} style={{ color: '#64748B', fontSize: 14 }} />
+                </div>
               </div>
             </IonCardContent>
           </IonCard>
         ))}
 
-        <div style={{ height: 32 }} />
+        <div style={{ height: 40 }} />
       </IonContent>
 
       {/* ── About modal ── */}
-      <IonModal isOpen={showAbout} onDidDismiss={() => setShowAbout(false)} breakpoints={[0, 0.75]} initialBreakpoint={0.75}>
+      <IonModal isOpen={showAbout} onDidDismiss={() => setShowAbout(false)} breakpoints={[0, 0.8]} initialBreakpoint={0.8} handle handleBehavior="cycle">
         <IonHeader>
           <IonToolbar>
             <IonTitle>About This App</IonTitle>
@@ -166,47 +169,78 @@ const HomePage: React.FC = () => {
   );
 };
 
-const styles: Record<string, React.CSSProperties> = {
+const s: Record<string, React.CSSProperties> = {
   logoCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
+    width: 36, height: 36, borderRadius: '50%',
     background: 'rgba(255,255,255,0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   ribbon: {
     background: 'var(--ion-color-primary-shade)',
     color: 'rgba(255,255,255,0.85)',
-    fontSize: 11,
-    fontWeight: 600,
-    textAlign: 'center',
-    padding: '5px 16px',
-    letterSpacing: 0.3,
+    fontSize: 11, fontWeight: 700, textAlign: 'center',
+    padding: '5px 16px', letterSpacing: 0.5,
   },
-  welcome: { padding: '20px 16px 8px' },
-  greeting: { fontSize: 24, fontWeight: 800, color: '#212121' },
-  subGreeting: { fontSize: 14, color: '#757575', marginTop: 4 },
-  statBanner: { margin: '8px 16px', borderRadius: 14 },
-  statRow: { display: 'flex', alignItems: 'center' },
-  statItem: { flex: 1, textAlign: 'center', padding: '4px 0' },
-  statNum: { fontSize: 28, fontWeight: 900, color: 'var(--ion-color-primary)', lineHeight: '1' },
-  statCap: { fontSize: 11, fontWeight: 600, color: '#757575', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 },
-  statDivider: { width: 1, height: 40, background: '#E0E0E0' },
-  menuCard: { cursor: 'pointer' },
-  menuRow: { display: 'flex', alignItems: 'center', gap: 12 },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  welcomeBanner: {
+    margin: '16px 16px 0',
+    background: 'linear-gradient(135deg, #1565C0 0%, #0d47a1 100%)',
+    borderRadius: 20,
+    padding: '20px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 16,
+    boxShadow: '0 8px 24px rgba(21,101,192,0.35)',
+  },
+  avatarCircle: {
+    width: 52, height: 52, borderRadius: '50%',
+    background: 'rgba(255,255,255,0.22)',
+    border: '2px solid rgba(255,255,255,0.35)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', fontWeight: 900, fontSize: 18,
     flexShrink: 0,
   },
-  menuLabel: { fontSize: 15, fontWeight: 700, color: '#212121' },
-  menuDesc: { fontSize: 13, color: '#757575', marginTop: 2 },
+  greeting: { fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: -0.3 },
+  subGreeting: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 3, fontWeight: 500 },
+  statsRow: {
+    display: 'flex', gap: 10, padding: '12px 16px',
+  },
+  statCard: {
+    flex: 1, background: '#fff', borderRadius: 16,
+    padding: '14px 8px', textAlign: 'center',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+    border: '1px solid rgba(0,0,0,0.04)',
+    animation: 'fadeSlideUp 0.3s ease both',
+  },
+  statIcon: {
+    width: 32, height: 32, borderRadius: 10,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 2,
+  },
+  statNum: { fontSize: 26, fontWeight: 900, lineHeight: 1, letterSpacing: -1 },
+  statCap: { fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.6 },
+  menuCard: {
+    margin: '0 16px 10px',
+    borderRadius: 18,
+    cursor: 'pointer',
+    animation: 'fadeSlideUp 0.3s ease both',
+    border: '1px solid rgba(0,0,0,0.05)',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+  },
+  menuRow: { display: 'flex', alignItems: 'center', gap: 14 },
+  iconBox: {
+    width: 48, height: 48, borderRadius: 14,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+  },
+  menuLabel: { fontSize: 15, fontWeight: 800, color: '#1e293b', letterSpacing: 0.1 },
+  menuDesc:  { fontSize: 12, color: '#6B7280', marginTop: 2, fontWeight: 500 },
+  chevronWrap: {
+    width: 26, height: 26, borderRadius: '50%',
+    background: '#E2E8F0',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
 };
 
 export default HomePage;

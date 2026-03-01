@@ -186,13 +186,13 @@ const LearnerFormPage: React.FC = () => {
       </IonContent>
 
       <IonFooter>
-        <IonToolbar style={{ padding: '8px 16px' }}>
+        <IonToolbar style={{ padding: '10px 16px', '--background': '#fff', '--border-width': '0', boxShadow: '0 -1px 0 #F1F5F9' } as any}>
           <div style={{ display: 'flex', gap: 10 }}>
             <IonButton
               expand="block"
               fill="outline"
               onClick={goBack}
-              style={{ flex: 1 }}
+              style={{ flex: 1, '--border-radius': '50px', '--border-color': '#CBD5E1', '--color': '#374151', '--background': '#F8FAFC', height: 48, fontWeight: 700 } as any}
             >
               <IonIcon slot="start" icon={chevronBackOutline} />
               {step === 0 ? 'Cancel' : 'Back'}
@@ -200,7 +200,7 @@ const LearnerFormPage: React.FC = () => {
             <IonButton
               expand="block"
               onClick={goNext}
-              style={{ flex: 2 }}
+              style={{ flex: 2, '--border-radius': '50px', '--background': 'linear-gradient(135deg,#1976d2 0%,#1565C0 60%,#0d47a1 100%)', '--box-shadow': '0 6px 20px rgba(21,101,192,0.38)', height: 48, fontWeight: 800 } as any}
             >
               {step === TOTAL_STEPS - 1 ? (
                 <><IonIcon slot="start" icon={checkmarkOutline} /> Save Learner</>

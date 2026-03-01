@@ -15,23 +15,26 @@ export const validatePersonalInfo = (d: LearnerFormData): ValidationResult => {
   if (!d.civilStatus)        e.civilStatus = 'Civil status is required';
   if (!d.birthdate)          e.birthdate   = 'Birthdate is required';
   if (!d.motherTongue)       e.motherTongue = 'Mother tongue is required';
-  if (!d.isIP)               e.isIP        = 'Please indicate IP status';
-  if (d.isIP === 'Yes' && !d.ipTribe.trim()) e.ipTribe = 'Tribe / ethnic group is required';
-  if (!d.is4PsMember)        e.is4PsMember = 'Please indicate 4Ps membership';
-  if (!d.mappedBy.trim())    e.mappedBy    = 'Mapped-by name is required';
+  if (!d.occupationType)     e.occupationType = 'Occupation type is required';
+  if (d.occupationType && d.occupationType !== 'None' && !d.employmentStatus)
+    e.employmentStatus = 'Employment status is required';
+  if (!d.monthlyIncome?.trim()) e.monthlyIncome = 'Monthly income is required';
   return result(e);
 };
 
 // ── Section 1 – Education ─────────────────────────────────────────────────────
 export const validateEducation = (d: LearnerFormData): ValidationResult => {
   const e: Record<string, string> = {};
-  if (!d.currentlyStudying)      e.currentlyStudying    = 'Please indicate if currently studying';
-  if (!d.lastGradeCompleted)     e.lastGradeCompleted   = 'Last grade completed is required';
-  if (d.currentlyStudying === 'No' && !d.reasonForNotAttending)
-    e.reasonForNotAttending = 'Reason for not attending is required';
-  if (d.reasonForNotAttending === 'Others (Specify)' && !d.reasonForNotAttendingOther.trim())
-    e.reasonForNotAttendingOther = 'Please specify the reason';
-  if (!d.interestedInALS)        e.interestedInALS      = 'Interest in ALS is required';
+  if (!d.isBlp) { e.isBlp = 'Please indicate BLP status'; return result(e); }
+  if (d.isBlp === 'No') {
+    if (!d.currentlyStudying)      e.currentlyStudying    = 'Please indicate if currently studying';
+    if (!d.lastGradeCompleted)     e.lastGradeCompleted   = 'Last grade completed is required';
+    if (d.currentlyStudying === 'No' && !d.reasonForNotAttending)
+      e.reasonForNotAttending = 'Reason for not attending is required';
+    if (d.reasonForNotAttending === 'Others (Specify)' && !d.reasonForNotAttendingOther.trim())
+      e.reasonForNotAttendingOther = 'Please specify the reason';
+    if (!d.interestedInALS)        e.interestedInALS      = 'Interest in ALS is required';
+  }
   return result(e);
 };
 
@@ -47,6 +50,9 @@ export const validateAddress = (d: LearnerFormData): ValidationResult => {
 export const validateFamily = (d: LearnerFormData): ValidationResult => {
   const e: Record<string, string> = {};
   if (!d.roleInFamily) e.roleInFamily = 'Role in the family is required';
+  if (!d.isIP)         e.isIP         = 'Please indicate IP status';
+  if (d.isIP === 'Yes' && !d.ipTribe.trim()) e.ipTribe = 'Tribe / ethnic group is required';
+  if (!d.is4PsMember)  e.is4PsMember  = 'Please indicate 4Ps membership';
   return result(e);
 };
 
@@ -58,6 +64,7 @@ export const validateLogistics = (d: LearnerFormData): ValidationResult => {
   if (!d.travelTime.trim())          e.travelTime          = 'Travel time is required';
   if (!d.transportMode)              e.transportMode       = 'Transport mode is required';
   if (!d.preferredSessionTime)       e.preferredSessionTime = 'Preferred session time is required';
+  if (!d.mappedBy.trim())            e.mappedBy            = 'Mapped-by name is required';
   if (!d.dateMapped)                 e.dateMapped          = 'Date mapped is required';
   return result(e);
 };

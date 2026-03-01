@@ -1,9 +1,10 @@
 import React from 'react';
 import { IonText } from '@ionic/react';
 import { LearnerFormData, ValidationErrors } from '../../types';
-import { FAMILY_ROLE_OPTIONS } from '../../utils/constants';
+import { FAMILY_ROLE_OPTIONS, YES_NO_OPTIONS } from '../../utils/constants';
 import FormInput from '../FormInput';
 import FormSelect from '../FormSelect';
+import RadioGroup from '../RadioGroup';
 
 interface Props {
   data: LearnerFormData;
@@ -14,9 +15,6 @@ interface Props {
 const FamilySection: React.FC<Props> = ({ data, errors, onChange }) => (
   <div>
     <IonText><h3 style={sectionStyle}>👨‍👩‍👧 Family Information</h3></IonText>
-    <IonText><p style={{ color: '#757575', fontSize: 14, marginBottom: 16 }}>
-      Role in the family is required. Other fields are optional.
-    </p></IonText>
 
     <FormSelect label="Role in the Family" value={data.roleInFamily}
       onChange={v => onChange('roleInFamily', v)}
@@ -33,6 +31,19 @@ const FamilySection: React.FC<Props> = ({ data, errors, onChange }) => (
 
     <FormInput label="Guardian's Occupation (optional)" value={data.guardianOccupation}
       onChange={v => onChange('guardianOccupation', v)} placeholder="e.g. Farmer" />
+
+    <RadioGroup label="Indigenous Peoples (IP) Member? *" options={['Yes', 'No']}
+      value={data.isIP} onChange={(v: string) => onChange('isIP', v)} error={errors.isIP} />
+
+    {data.isIP === 'Yes' && (
+      <FormInput label="Tribe / Ethnic Group" value={data.ipTribe}
+        onChange={v => onChange('ipTribe', v)} required error={errors.ipTribe}
+        placeholder="e.g. Higaonon" />
+    )}
+
+    <RadioGroup label="4Ps Member? *" options={YES_NO_OPTIONS as unknown as string[]}
+      value={data.is4PsMember} onChange={(v: string) => onChange('is4PsMember', v)}
+      error={errors.is4PsMember} />
   </div>
 );
 

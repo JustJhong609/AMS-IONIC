@@ -4,6 +4,7 @@ import { LearnerFormData, ValidationErrors } from '../../types';
 import { TRANSPORT_OPTIONS, SESSION_TIME_OPTIONS } from '../../utils/constants';
 import FormInput from '../FormInput';
 import FormSelect from '../FormSelect';
+import DatePickerInput from '../DatePickerInput';
 
 interface Props {
   data: LearnerFormData;
@@ -31,9 +32,13 @@ const LogisticsSection: React.FC<Props> = ({ data, errors, onChange }) => (
       onChange={v => onChange('preferredSessionTime', v)}
       options={SESSION_TIME_OPTIONS} required error={errors.preferredSessionTime} />
 
-    <FormInput label="Date Mapped" value={data.dateMapped}
-      onChange={v => onChange('dateMapped', v)} type="date"
-      required error={errors.dateMapped} />
+    <FormInput label="Mapped By (Facilitator)" value={data.mappedBy}
+      onChange={v => onChange('mappedBy', v)}
+      placeholder="Facilitator name" required error={errors.mappedBy} />
+
+    <DatePickerInput label="Date Mapped" value={data.dateMapped}
+      onChange={(v: string) => onChange('dateMapped', v)}
+      required error={errors.dateMapped} max={new Date().toISOString().split('T')[0]} />
   </div>
 );
 

@@ -2,12 +2,14 @@ import React from 'react';
 import { IonText } from '@ionic/react';
 import { LearnerFormData, ValidationErrors } from '../../types';
 import {
-  CIVIL_STATUS_OPTIONS, MOTHER_TONGUE_OPTIONS, SEX_OPTIONS, YES_NO_OPTIONS,
+  CIVIL_STATUS_OPTIONS, MOTHER_TONGUE_OPTIONS, SEX_OPTIONS,
+  OCCUPATION_TYPE_OPTIONS, EMPLOYMENT_STATUS_OPTIONS,
 } from '../../utils/constants';
 import { calculateAge } from '../../utils/helpers';
 import FormInput from '../FormInput';
 import FormSelect from '../FormSelect';
 import RadioGroup from '../RadioGroup';
+import DatePickerInput from '../DatePickerInput';
 
 interface Props {
   data: LearnerFormData;
@@ -28,9 +30,6 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
     <div>
       <IonText><h3 style={sectionStyle}>👤 Personal Information</h3></IonText>
 
-      <FormInput label="Mapped By" value={data.mappedBy} onChange={v => onChange('mappedBy', v)}
-        placeholder="Facilitator name" required error={errors.mappedBy} />
-
       <FormInput label="Last Name" value={data.lastName} onChange={v => onChange('lastName', v)}
         required error={errors.lastName} />
       <FormInput label="First Name" value={data.firstName} onChange={v => onChange('firstName', v)}
@@ -41,14 +40,14 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
         onChange={v => onChange('nameExtension', v)} placeholder="Jr., Sr., III…" />
 
       <RadioGroup label="Sex *" options={SEX_OPTIONS as unknown as string[]}
-        value={data.sex} onChange={v => onChange('sex', v)} error={errors.sex} />
+        value={data.sex} onChange={(v: string) => onChange('sex', v)} error={errors.sex} />
 
       <FormSelect label="Civil Status" value={data.civilStatus}
         onChange={v => onChange('civilStatus', v)}
         options={CIVIL_STATUS_OPTIONS} required error={errors.civilStatus} />
 
-      <FormInput label="Birthdate" value={data.birthdate}
-        onChange={handleBirthdate} type="date" required error={errors.birthdate} />
+      <DatePickerInput label="Birthdate" value={data.birthdate}
+        onChange={handleBirthdate} required error={errors.birthdate} />
 
       {data.age && (
         <FormInput label="Age (auto-calculated)" value={data.age}
@@ -59,19 +58,22 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
         onChange={v => onChange('motherTongue', v)}
         options={MOTHER_TONGUE_OPTIONS} required error={errors.motherTongue} />
 
-      <RadioGroup label="Indigenous Peoples (IP) *" options={['Yes', 'No']}
-        value={data.isIP} onChange={v => onChange('isIP', v)} error={errors.isIP} />
+      <FormSelect label="Occupation Type" value={data.occupationType ?? ''}
+        onChange={v => onChange('occupationType', v)}
+        options={OCCUPATION_TYPE_OPTIONS} required error={errors.occupationType} />
 
-      {data.isIP === 'Yes' && (
-        <FormInput label="Tribe / Ethnic Group" value={data.ipTribe}
-          onChange={v => onChange('ipTribe', v)} required error={errors.ipTribe} />
+      {data.occupationType && data.occupationType !== 'None' && (
+        <FormSelect label="Employment Status" value={data.employmentStatus ?? ''}
+          onChange={v => onChange('employmentStatus', v)}
+          options={EMPLOYMENT_STATUS_OPTIONS} required error={errors.employmentStatus} />
       )}
+
+      <FormInput label="Monthly Income" value={data.monthlyIncome ?? ''}
+        onChange={v => onChange('monthlyIncome', v)} type="number" inputmode="numeric"
+        placeholder="e.g. 5000" required error={errors.monthlyIncome} />
 
       <FormInput label="Religion (optional)" value={data.religion}
         onChange={v => onChange('religion', v)} />
-
-      <RadioGroup label="4Ps Member *" options={YES_NO_OPTIONS as unknown as string[]}
-        value={data.is4PsMember} onChange={v => onChange('is4PsMember', v)} error={errors.is4PsMember} />
     </div>
   );
 };

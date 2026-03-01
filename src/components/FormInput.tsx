@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonItem, IonInput } from '@ionic/react';
+import { IonInput } from '@ionic/react';
 
 interface Props {
   label: string;
@@ -18,18 +18,19 @@ const FormInput: React.FC<Props> = ({
   required, error, readonly, inputmode,
 }) => (
   <div className="form-group">
-    <label className={`form-label${required ? ' form-label-required' : ''}`}>{label}</label>
-    <IonItem fill="outline" style={{ '--border-radius': '10px' } as React.CSSProperties}>
-      <IonInput
-        value={value}
-        type={type}
-        placeholder={placeholder}
-        onIonInput={e => onChange(e.detail.value!)}
-        readonly={readonly}
-        inputmode={inputmode}
-        style={{ '--padding-start': '12px' } as React.CSSProperties}
-      />
-    </IonItem>
+    <IonInput
+      label={label}
+      labelPlacement="floating"
+      fill="outline"
+      value={value}
+      type={type}
+      placeholder={placeholder}
+      onIonInput={e => onChange(e.detail.value!)}
+      readonly={readonly}
+      inputmode={inputmode}
+      className={required ? 'ion-touched' : ''}
+      style={{ '--border-radius': '10px' } as React.CSSProperties}
+    />
     {error && <div className="error-text">{error}</div>}
   </div>
 );

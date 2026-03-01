@@ -23,36 +23,30 @@ const App: React.FC = () => {
       <IonApp>
         <IonReactRouter>
           <Switch>
-            {!user ? (
-              <>
-                <Route exact path="/login">
-                  <LoginPage />
-                </Route>
-                <Redirect to="/login" />
-              </>
-            ) : (
-              <>
-                <Route exact path="/home">
-                  <HomePage />
-                </Route>
-                <Route exact path="/learners">
-                  <LearnerListPage />
-                </Route>
-                <Route exact path="/learners/new">
-                  <LearnerFormPage />
-                </Route>
-                <Route exact path="/learners/edit/:id">
-                  <LearnerFormPage />
-                </Route>
-                <Route exact path="/learners/:id">
-                  <LearnerDetailPage />
-                </Route>
-                <Route exact path="/analytics">
-                  <AnalyticsPage />
-                </Route>
-                <Redirect to="/home" />
-              </>
-            )}
+            <Route exact path="/login">
+              {user ? <Redirect to="/home" /> : <LoginPage />}
+            </Route>
+
+            <Route exact path="/home">
+              {user ? <HomePage /> : <Redirect to="/login" />}
+            </Route>
+            <Route exact path="/learners">
+              {user ? <LearnerListPage /> : <Redirect to="/login" />}
+            </Route>
+            <Route exact path="/learners/new">
+              {user ? <LearnerFormPage /> : <Redirect to="/login" />}
+            </Route>
+            <Route exact path="/learners/edit/:id">
+              {user ? <LearnerFormPage /> : <Redirect to="/login" />}
+            </Route>
+            <Route exact path="/learners/:id">
+              {user ? <LearnerDetailPage /> : <Redirect to="/login" />}
+            </Route>
+            <Route exact path="/analytics">
+              {user ? <AnalyticsPage /> : <Redirect to="/login" />}
+            </Route>
+
+            <Redirect to={user ? '/home' : '/login'} />
           </Switch>
         </IonReactRouter>
       </IonApp>

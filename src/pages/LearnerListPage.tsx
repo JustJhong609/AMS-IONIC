@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+  IonPage, IonHeader, IonToolbar, IonContent, IonButtons,
   IonBackButton, IonSearchbar, IonFab, IonFabButton, IonIcon,
   IonCard, IonCardContent, IonAvatar, IonText, IonAlert,
-  IonButton, IonChip, IonLabel,
+  IonButton,
 } from '@ionic/react';
 import { add, pencilOutline, trashOutline, personOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Learner } from '../types';
+import { DISTRICT } from '../utils/constants';
 
 const LearnerListPage: React.FC = () => {
   const { learners, setLearners } = useAppContext();
@@ -40,25 +41,28 @@ const LearnerListPage: React.FC = () => {
           <IonButtons slot="start">
             <IonBackButton defaultHref="/home" />
           </IonButtons>
-          <IonTitle>Learner List</IonTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: 4 }}>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>ALS Mapper</div>
+            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>{DISTRICT}</div>
+          </div>
+          <IonButtons slot="end">
+            <div style={styles.countBadge}>
+              <div style={styles.countNum}>{learners.length}</div>
+              <div style={styles.countLbl}>{learners.length === 1 ? 'Learner' : 'Learners'}</div>
+            </div>
+          </IonButtons>
         </IonToolbar>
         <IonToolbar>
           <IonSearchbar
             value={query}
             onIonInput={e => setQuery(e.detail.value!)}
-            placeholder="Search by name…"
+            placeholder="Search learners by name…"
             debounce={150}
           />
         </IonToolbar>
       </IonHeader>
 
       <IonContent>
-        {/* Stats chip */}
-        <div style={{ padding: '8px 16px 4px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <IonChip color="primary" outline>
-            <IonLabel>{filtered.length} learner{filtered.length !== 1 ? 's' : ''} found</IonLabel>
-          </IonChip>
-        </div>
 
         {filtered.length === 0 ? (
           <EmptyState hasLearners={learners.length > 0} onAdd={() => history.push('/learners/new')} />
@@ -172,6 +176,28 @@ const EmptyState: React.FC<{ hasLearners: boolean; onAdd: () => void }> = ({ has
 );
 
 const styles: Record<string, React.CSSProperties> = {
+  countBadge: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: 'rgba(255,255,255,0.18)',
+    borderRadius: 10,
+    padding: '4px 12px',
+    marginRight: 8,
+  },
+  countNum: {
+    color: '#fff',
+    fontWeight: 900,
+    fontSize: 18,
+    lineHeight: '1',
+  },
+  countLbl: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 10,
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
   avatar: {
     width: 48,
     height: 48,

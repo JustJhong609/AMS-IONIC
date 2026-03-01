@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonContent, IonItem, IonInput, IonButton, IonText,
+  IonPage, IonContent, IonInput, IonButton, IonText,
   IonSpinner, IonIcon, IonInputPasswordToggle,
 } from '@ionic/react';
-import { personCircleOutline, mailOutline, lockClosedOutline, schoolOutline } from 'ionicons/icons';
+import { schoolOutline, personOutline, lockClosedOutline, mailOutline } from 'ionicons/icons';
 import { useAppContext } from '../context/AppContext';
 import { DISTRICT, DIVISION, REGION } from '../utils/constants';
 
@@ -38,211 +38,328 @@ const LoginPage: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       setUser({ name: displayName, email: trimmedEmail });
-    }, 500);
+    }, 600);
   };
+
+  const switchMode = () => { setIsSignUp(!isSignUp); setError(''); };
 
   return (
     <IonPage>
-      <IonContent fullscreen className="ion-padding" style={{ '--background': 'var(--ion-color-primary)' }}>
-        <div style={styles.outer}>
-          {/* ── Branding ── */}
-          <div style={styles.brand}>
-            <div style={styles.logoCircle}>
-              <IonIcon icon={schoolOutline} style={{ fontSize: 36, color: '#fff' }} />
+      <IonContent fullscreen scrollY={false} style={{ '--background': 'transparent' } as React.CSSProperties}>
+        {/* Background gradient */}
+        <div style={s.bg}>
+          {/* Decorative blobs */}
+          <div style={{ ...s.blob, width: 280, height: 280, top: -80, left: -80, animationDelay: '0s' }} />
+          <div style={{ ...s.blob, width: 180, height: 180, top: 60, right: -60, background: 'rgba(255,255,255,0.07)', animationDelay: '1.5s' }} />
+          <div style={{ ...s.blob, width: 140, height: 140, bottom: 160, left: 40, background: 'rgba(255,255,255,0.05)', animationDelay: '0.8s' }} />
+
+          <div style={s.outer}>
+            {/* Brand */}
+            <div style={s.brand}>
+              <div style={s.logoWrap}>
+                <IonIcon icon={schoolOutline} style={{ fontSize: 38, color: '#fff' }} />
+              </div>
+              <div style={s.appName}>ALS Mapping System</div>
+              <div style={s.tagline}>Community Mapping Tool</div>
+              <div style={s.districtBadge}>
+                <span style={s.districtText}>{DISTRICT}</span>
+                <span style={s.districtSub}>{DIVISION} &nbsp;•&nbsp; {REGION}</span>
+              </div>
             </div>
-            <div style={styles.appName}>ALS Mapping System</div>
-            <div style={styles.tagline}>Community Mapping Tool</div>
-            <div style={styles.adminBadge}>
-              <div style={styles.adminBadgeText}>{DISTRICT}</div>
-              <div style={styles.adminBadgeSub}>{DIVISION} | {REGION}</div>
+
+            {/* Card */}
+            <div style={s.card}>
+              <div style={s.cardHeader}>
+                <div style={s.cardTitle}>{isSignUp ? 'Create Account' : 'Welcome Back!'}</div>
+                <div style={s.cardSub}>
+                  {isSignUp
+                    ? 'Fill in your details to get started'
+                    : 'Sign in to continue mapping learners'}
+                </div>
+              </div>
+
+              <div style={s.cardBody}>
+                {isSignUp && (
+                  <div style={s.inputWrap}>
+                    <IonIcon icon={personOutline} style={s.inputIcon} />
+                    <IonInput
+                      fill="outline"
+                      label="Full Name"
+                      labelPlacement="floating"
+                      value={name}
+                      onIonInput={e => setName(e.detail.value!)}
+                      autocomplete="name"
+                      style={s.input as React.CSSProperties}
+                    />
+                  </div>
+                )}
+
+                <div style={s.inputWrap}>
+                  <IonIcon icon={mailOutline} style={s.inputIcon} />
+                  <IonInput
+                    fill="outline"
+                    label="Email Address"
+                    labelPlacement="floating"
+                    type="email"
+                    value={email}
+                    onIonInput={e => setEmail(e.detail.value!)}
+                    autocomplete="email"
+                    style={s.input as React.CSSProperties}
+                  />
+                </div>
+
+                <div style={s.inputWrap}>
+                  <IonIcon icon={lockClosedOutline} style={s.inputIcon} />
+                  <IonInput
+                    fill="outline"
+                    label="Password"
+                    labelPlacement="floating"
+                    type="password"
+                    value={password}
+                    onIonInput={e => setPassword(e.detail.value!)}
+                    onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                    style={s.input as React.CSSProperties}
+                  >
+                    <IonInputPasswordToggle slot="end" />
+                  </IonInput>
+                </div>
+
+                {error && (
+                  <div style={s.errorBox}>
+                    <span style={{ fontSize: 14 }}>⚠️</span>
+                    <IonText color="danger"><span style={{ fontSize: 13, fontWeight: 600 }}>{error}</span></IonText>
+                  </div>
+                )}
+
+                <IonButton
+                  expand="block"
+                  style={s.btn}
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading
+                    ? <IonSpinner name="crescent" style={{ color: '#fff' }} />
+                    : (isSignUp ? '🚀  Create Account' : 'Sign In  →')}
+                </IonButton>
+
+                <div style={s.divider}>
+                  <span style={s.dividerLine} />
+                  <span style={s.dividerText}>or</span>
+                  <span style={s.dividerLine} />
+                </div>
+
+                <div style={s.switchRow}>
+                  <span style={{ color: '#6B7280', fontSize: 14 }}>
+                    {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                  </span>
+                  <button style={s.switchLink} onClick={switchMode}>
+                    {isSignUp ? ' Sign In' : ' Sign Up'}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            <div style={s.footer}>ALS Mapping System • DepEd Region X</div>
           </div>
-
-          {/* ── Form card ── */}
-          <div style={styles.card}>
-            <div style={styles.cardTitle}>
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
-            </div>
-            <div style={styles.cardSubtitle}>
-              {isSignUp ? 'Sign up to start mapping learners' : 'Sign in to continue'}
-            </div>
-
-            {isSignUp && (
-              <IonItem fill="outline" style={styles.item}>
-                <IonIcon slot="start" icon={personCircleOutline} />
-                <IonInput
-                  label="Full Name"
-                  labelPlacement="floating"
-                  value={name}
-                  onIonInput={e => setName(e.detail.value!)}
-                  autocomplete="name"
-                />
-              </IonItem>
-            )}
-
-            <IonItem fill="outline" style={styles.item}>
-              <IonIcon slot="start" icon={mailOutline} />
-              <IonInput
-                label="Email Address"
-                labelPlacement="floating"
-                type="email"
-                value={email}
-                onIonInput={e => setEmail(e.detail.value!)}
-                autocomplete="email"
-              />
-            </IonItem>
-
-            <IonItem fill="outline" style={styles.item}>
-              <IonIcon slot="start" icon={lockClosedOutline} />
-              <IonInput
-                label="Password"
-                labelPlacement="floating"
-                type="password"
-                value={password}
-                onIonInput={e => setPassword(e.detail.value!)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              >
-                <IonInputPasswordToggle slot="end" />
-              </IonInput>
-            </IonItem>
-
-            {error && (
-              <IonText color="danger">
-                <p style={{ fontSize: 13, margin: '4px 16px 0' }}>{error}</p>
-              </IonText>
-            )}
-
-            <IonButton
-              expand="block"
-              style={styles.submitBtn}
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? <IonSpinner name="crescent" /> : (isSignUp ? 'Create Account' : 'Sign In')}
-            </IonButton>
-
-            <div style={styles.switchRow}>
-              <span style={styles.switchText}>
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-              </span>
-              <button style={styles.switchLink} onClick={() => { setIsSignUp(!isSignUp); setError(''); }}>
-                {isSignUp ? ' Sign In' : ' Sign Up'}
-              </button>
-            </div>
-          </div>
-
-          <div style={styles.footer}>ALS Mapping System v1.0</div>
         </div>
       </IonContent>
     </IonPage>
   );
 };
 
-const styles: Record<string, React.CSSProperties> = {
-  outer: {
+const s: Record<string, React.CSSProperties> = {
+  bg: {
     minHeight: '100%',
+    background: 'linear-gradient(160deg, #1565C0 0%, #0d47a1 55%, #1a237e 100%)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  blob: {
+    position: 'absolute',
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.08)',
+    animation: 'float 6s ease-in-out infinite',
+  },
+  outer: {
+    position: 'relative',
+    zIndex: 1,
+    minHeight: '100svh',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '24px 0',
+    padding: '32px 20px',
+    gap: 8,
   },
   brand: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 20,
+    animation: 'fadeSlideUp 0.5s ease both',
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
+  logoWrap: {
+    width: 80,
+    height: 80,
     borderRadius: '50%',
-    background: 'rgba(255,255,255,0.2)',
+    background: 'rgba(255,255,255,0.18)',
+    backdropFilter: 'blur(8px)',
+    border: '2px solid rgba(255,255,255,0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
+    animation: 'float 4s ease-in-out infinite',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
   },
   appName: {
-    fontSize: 26,
-    fontWeight: 800,
+    fontSize: 24,
+    fontWeight: 900,
     color: '#fff',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
     textAlign: 'center',
+    textShadow: '0 2px 8px rgba(0,0,0,0.2)',
   },
   tagline: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
-  },
-  adminBadge: {
-    marginTop: 16,
-    background: 'rgba(255,255,255,0.15)',
-    borderRadius: 10,
-    padding: '8px 20px',
-    textAlign: 'center',
-  },
-  adminBadgeText: {
-    color: '#fff',
-    fontWeight: 700,
-    fontSize: 14,
-  },
-  adminBadgeSub: {
+    fontSize: 13,
     color: 'rgba(255,255,255,0.75)',
-    fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
+    letterSpacing: 0.5,
+  },
+  districtBadge: {
+    marginTop: 14,
+    background: 'rgba(255,255,255,0.15)',
+    backdropFilter: 'blur(6px)',
+    border: '1px solid rgba(255,255,255,0.25)',
+    borderRadius: 50,
+    padding: '7px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
+  },
+  districtText: {
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: 13,
+    letterSpacing: 0.3,
+  },
+  districtSub: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
+    letterSpacing: 0.4,
   },
   card: {
     background: '#fff',
-    borderRadius: 20,
-    padding: '24px 20px 20px',
+    borderRadius: 24,
     width: '100%',
-    maxWidth: 400,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+    maxWidth: 420,
+    boxShadow: '0 24px 64px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.12)',
+    animation: 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.1s',
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    background: 'linear-gradient(135deg, #F1F5F9, #fff)',
+    padding: '24px 24px 18px',
+    borderBottom: '1px solid #F1F5F9',
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: 800,
-    color: '#212121',
+    fontWeight: 900,
+    color: '#1e293b',
+    letterSpacing: -0.5,
+  },
+  cardSub: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
+    fontWeight: 500,
+  },
+  cardBody: {
+    padding: '20px 24px 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+  },
+  inputWrap: {
+    position: 'relative',
     marginBottom: 4,
   },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 20,
-  },
-  item: {
-    marginBottom: 12,
-    '--border-radius': '10px',
-  } as React.CSSProperties,
-  submitBtn: {
-    marginTop: 16,
-    '--border-radius': '10px',
-    fontWeight: 700,
+  inputIcon: {
+    position: 'absolute',
+    left: 14,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: '#94A3B8',
     fontSize: 16,
+    zIndex: 10,
+    display: 'none', // icons handled by label
   } as React.CSSProperties,
+  input: {
+    '--border-radius': '12px',
+    marginBottom: 8,
+  } as any,
+  errorBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: '#FEF2F2',
+    border: '1px solid #FECACA',
+    borderRadius: 10,
+    padding: '10px 14px',
+    marginTop: 4,
+    marginBottom: 4,
+    animation: 'shake 0.35s ease',
+  },
+  btn: {
+    '--border-radius': '50px',
+    '--background': 'linear-gradient(135deg, #1976d2 0%, #1565C0 60%, #0d47a1 100%)',
+    '--box-shadow': '0 8px 28px rgba(21,101,192,0.42)',
+    fontWeight: 800,
+    fontSize: 16,
+    letterSpacing: 0.3,
+    marginTop: 8,
+    height: 54,
+  } as React.CSSProperties,
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    margin: '8px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    background: '#E2E8F0',
+    display: 'block',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: 600,
+    letterSpacing: 0.5,
+  },
   switchRow: {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: 14,
-    fontSize: 14,
-    color: '#757575',
+    alignItems: 'center',
     gap: 4,
   },
-  switchText: { color: '#757575' },
   switchLink: {
     background: 'none',
     border: 'none',
     color: 'var(--ion-color-primary)',
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: 'pointer',
     fontSize: 14,
     padding: 0,
+    fontFamily: 'inherit',
   },
   footer: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 12,
-    marginTop: 24,
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    marginTop: 20,
+    letterSpacing: 0.5,
   },
 };
 

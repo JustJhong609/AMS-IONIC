@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonItem, IonSelect, IonSelectOption } from '@ionic/react';
+import { IonSelect, IonSelectOption } from '@ionic/react';
 
 interface Props {
   label: string;
@@ -13,20 +13,20 @@ interface Props {
 
 const FormSelect: React.FC<Props> = ({ label, value, onChange, options, placeholder, required, error }) => (
   <div className="form-group">
-    <label className={`form-label${required ? ' form-label-required' : ''}`}>{label}</label>
-    <IonItem fill="outline" style={{ '--border-radius': '10px' } as React.CSSProperties}>
-      <IonSelect
-        value={value || undefined}
-        placeholder={placeholder || `-- Select ${label} --`}
-        onIonChange={e => onChange(e.detail.value)}
-        interface="action-sheet"
-        style={{ width: '100%' }}
-      >
-        {options.map(opt => (
-          <IonSelectOption key={opt} value={opt}>{opt}</IonSelectOption>
-        ))}
-      </IonSelect>
-    </IonItem>
+    <IonSelect
+      label={label}
+      labelPlacement="floating"
+      fill="outline"
+      value={value || undefined}
+      placeholder={placeholder || `Select ${label}`}
+      onIonChange={e => onChange(e.detail.value)}
+      interface="action-sheet"
+      style={{ '--border-radius': '12px', width: '100%' } as React.CSSProperties}
+    >
+      {options.map(opt => (
+        <IonSelectOption key={opt} value={opt}>{opt}</IonSelectOption>
+      ))}
+    </IonSelect>
     {error && <div className="error-text">{error}</div>}
   </div>
 );

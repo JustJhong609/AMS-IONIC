@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonText, IonItem, IonTextarea } from '@ionic/react';
+import { IonText, IonTextarea } from '@ionic/react';
 import { LearnerFormData, ValidationErrors } from '../../types';
 import { BARANGAY_OPTIONS } from '../../utils/constants';
 import FormSelect from '../FormSelect';
@@ -19,16 +19,17 @@ const AddressSection: React.FC<Props> = ({ data, errors, onChange }) => (
       options={BARANGAY_OPTIONS} required error={errors.barangay} />
 
     <div className="form-group">
-      <label className="form-label form-label-required">Complete Address</label>
-      <IonItem fill="outline" style={{ '--border-radius': '10px', '--padding-start': '12px' } as React.CSSProperties}>
-        <IonTextarea
-          value={data.completeAddress}
-          placeholder="House No., Street, Barangay, Municipality…"
-          rows={4}
-          onIonInput={e => onChange('completeAddress', e.detail.value!)}
-          autoGrow
-        />
-      </IonItem>
+      <IonTextarea
+        label="Complete Address *"
+        labelPlacement="floating"
+        fill="outline"
+        value={data.completeAddress}
+        placeholder="House No., Street, Barangay, Municipality…"
+        rows={4}
+        onIonInput={e => onChange('completeAddress', e.detail.value!)}
+        autoGrow
+        style={{ '--border-radius': '10px' } as React.CSSProperties}
+      />
       {errors.completeAddress && <div className="error-text">{errors.completeAddress}</div>}
     </div>
   </div>
