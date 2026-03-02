@@ -6,7 +6,7 @@ import {
 } from '@ionic/react';
 import {
   personAddOutline, listOutline, barChartOutline, informationCircleOutline,
-  chevronForwardOutline, logOutOutline, schoolOutline, peopleOutline,
+  chevronForwardOutline, logOutOutline, peopleOutline,
   personOutline, closeOutline,
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
@@ -40,7 +40,7 @@ const HomePage: React.FC = () => {
           <div style={s.headerTop}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={s.logoCircle}>
-                <IonIcon icon={schoolOutline} style={{ color: '#fff', fontSize: 22 }} />
+                <img src="/logo.png" alt="ALS Logo" style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 8 }} />
               </div>
               <div>
                 <div style={s.headerTitle}>ALS Mapping System</div>
