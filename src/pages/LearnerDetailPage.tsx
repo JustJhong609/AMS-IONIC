@@ -103,7 +103,10 @@ const LearnerDetailPage: React.FC = () => {
           <InfoRow label="IP"             value={learner.isIP} />
           {learner.isIP && <InfoRow label="Tribe"         value={learner.ipTribe} />}
           <InfoRow label="Religion"       value={learner.religion} />
-          <InfoRow label="4Ps Member"     value={learner.is4PsMember} />
+          <InfoRow label="4Ps / IP"       value={learner.is4PsMember || learner.isIP ? 'Yes' : 'No'} />
+          {(learner.is4PsMember || learner.isIP) && <InfoRow label="Type" value={learner.fourPsOrIp} />}
+          <InfoRow label="Person w/ Disability" value={learner.isPwd} />
+          {learner.isPwd && <InfoRow label="Disability Type" value={learner.pwdType === 'Others (Please Specify)' ? learner.pwdTypeOther : learner.pwdType} />}
         </SectionCard>
 
         <SectionCard title="🏠 Address">
@@ -120,6 +123,7 @@ const LearnerDetailPage: React.FC = () => {
         </SectionCard>
 
         <SectionCard title="🎓 Education Background">
+          <InfoRow label="School / Course / Degree" value={learner.schoolName} />
           <InfoRow label="Currently Studying"     value={learner.currentlyStudying} />
           <InfoRow label="Last Grade Completed"   value={learner.lastGradeCompleted} />
           <InfoRow label="Reason Not Attending"   value={learner.reasonForNotAttending} />

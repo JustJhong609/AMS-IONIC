@@ -44,6 +44,18 @@ export const BARANGAY_OPTIONS = [
   'Ticala', 'Santo Niño', 'Dicklum', 'Tankulan', 'Lingion', 'San Miguel',
 ] as const;
 
+export const PWD_TYPE_OPTIONS = [
+  'Partially Hearing Impaired',
+  'Totally Hearing Impaired',
+  'Partially Visually Impaired',
+  'Totally Visually Impaired',
+  'Physically Impaired',
+  'W/ Special Needs',
+  'Others (Please Specify)',
+] as const;
+
+export const FOURPS_IP_OPTIONS = ["4P's", "IP"] as const;
+
 export const TRANSPORT_OPTIONS = [
   'Walking', 'Tricycle', 'Habal-habal', 'Jeepney', 'Multicab',
   'Private Vehicle', 'Bicycle',

@@ -28,6 +28,13 @@ const EducationSection: React.FC<Props> = ({ data, errors, onChange }) => (
 
     {data.isBlp === 'No' && (
       <>
+        <FormInput
+          label="Name of School / Course / Degree"
+          value={data.schoolName ?? ''}
+          onChange={v => onChange('schoolName', v)}
+          placeholder="e.g. Manolo Fortich National High School"
+        />
+
         <RadioGroup
           label="Currently Studying? *"
           options={CURRENTLY_STUDYING_OPTIONS as unknown as string[]}

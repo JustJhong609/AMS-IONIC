@@ -4,6 +4,7 @@ import { LearnerFormData, ValidationErrors } from '../../types';
 import {
   CIVIL_STATUS_OPTIONS, MOTHER_TONGUE_OPTIONS, SEX_OPTIONS,
   OCCUPATION_TYPE_OPTIONS, EMPLOYMENT_STATUS_OPTIONS,
+  PWD_TYPE_OPTIONS,
 } from '../../utils/constants';
 import { calculateAge } from '../../utils/helpers';
 import FormInput from '../FormInput';
@@ -74,6 +75,36 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
 
       <FormInput label="Religion (optional)" value={data.religion}
         onChange={v => onChange('religion', v)} />
+
+      {/* ── Person with Disability ── */}
+      <RadioGroup
+        label="Person w/ Disability? *"
+        options={['Yes', 'No']}
+        value={data.isPwd}
+        onChange={v => { onChange('isPwd', v); if (v === 'No') { onChange('pwdType', ''); onChange('pwdTypeOther', ''); } }}
+        error={errors.isPwd}
+      />
+      {data.isPwd === 'Yes' && (
+        <>
+          <FormSelect
+            label="Type of Disability *"
+            value={data.pwdType}
+            onChange={v => { onChange('pwdType', v); if (v !== 'Others (Please Specify)') onChange('pwdTypeOther', ''); }}
+            options={PWD_TYPE_OPTIONS as unknown as string[]}
+            required
+            error={errors.pwdType}
+          />
+          {data.pwdType === 'Others (Please Specify)' && (
+            <FormInput
+              label="Please Specify"
+              value={data.pwdTypeOther}
+              onChange={v => onChange('pwdTypeOther', v)}
+              required
+              error={errors.pwdTypeOther}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
