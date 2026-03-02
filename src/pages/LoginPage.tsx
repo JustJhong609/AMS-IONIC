@@ -3,7 +3,7 @@ import {
   IonPage, IonContent, IonInput, IonButton, IonText,
   IonSpinner, IonIcon, IonInputPasswordToggle,
 } from '@ionic/react';
-import { schoolOutline, personOutline, lockClosedOutline, mailOutline } from 'ionicons/icons';
+import { personOutline, lockClosedOutline, mailOutline } from 'ionicons/icons';
 import { useAppContext } from '../context/AppContext';
 import { DISTRICT, DIVISION, REGION } from '../utils/constants';
 
@@ -56,9 +56,7 @@ const LoginPage: React.FC = () => {
           <div style={s.outer}>
             {/* Brand */}
             <div style={s.brand}>
-              <div style={s.logoWrap}>
-                <IonIcon icon={schoolOutline} style={{ fontSize: 38, color: '#fff' }} />
-              </div>
+              <img src="/logo.png" alt="ALS Mapping System Logo" style={s.logoImg} />
               <div style={s.appName}>ALS Mapping System</div>
               <div style={s.tagline}>Community Mapping Tool</div>
               <div style={s.districtBadge}>
@@ -198,19 +196,13 @@ const s: Record<string, React.CSSProperties> = {
     marginBottom: 20,
     animation: 'fadeSlideUp 0.5s ease both',
   },
-  logoWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.18)',
-    backdropFilter: 'blur(8px)',
-    border: '2px solid rgba(255,255,255,0.3)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImg: {
+    width: 200,
+    maxWidth: '70vw',
+    objectFit: 'contain' as const,
     marginBottom: 14,
+    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
     animation: 'float 4s ease-in-out infinite',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
   },
   appName: {
     fontSize: 24,
