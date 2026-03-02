@@ -21,6 +21,10 @@ export const createEmptyFormData = (): LearnerFormData => ({
   ipTribe: '',
   religion: '',
   is4PsMember: '',
+  fourPsOrIp: '',
+  isPwd: '',
+  pwdType: '',
+  pwdTypeOther: '',
 
   barangay: '',
   completeAddress: '',
@@ -31,6 +35,7 @@ export const createEmptyFormData = (): LearnerFormData => ({
   guardianName: '',
   guardianOccupation: '',
 
+  schoolName: '',
   currentlyStudying: '',
   lastGradeCompleted: '',
   reasonForNotAttending: '',

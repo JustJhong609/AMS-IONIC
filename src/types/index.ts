@@ -25,6 +25,10 @@ export interface Learner {
   ipTribe?: string;
   religion?: string;
   is4PsMember: boolean;
+  fourPsOrIp?: string;
+  isPwd: boolean;
+  pwdType?: string;
+  pwdTypeOther?: string;
 
   // Address
   barangay: string;
@@ -38,6 +42,7 @@ export interface Learner {
   guardianOccupation?: string;
 
   // Educational Background
+  schoolName?: string;
   currentlyStudying: string;
   lastGradeCompleted: string;
   reasonForNotAttending: string;
@@ -84,6 +89,10 @@ export interface LearnerFormData {
   ipTribe: string;
   religion: string;
   is4PsMember: string;
+  fourPsOrIp: string;
+  isPwd: string;
+  pwdType: string;
+  pwdTypeOther: string;
 
   // Address
   barangay: string;
@@ -97,6 +106,7 @@ export interface LearnerFormData {
   guardianOccupation: string;
 
   // Education
+  schoolName: string;
   currentlyStudying: string;
   lastGradeCompleted: string;
   reasonForNotAttending: string;
