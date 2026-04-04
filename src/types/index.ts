@@ -3,6 +3,7 @@
 /* ------------------------------------------------------------------ */
 export interface Learner {
   id: string;
+  createdBy?: string;
 
   // Administrative
   region: string;
@@ -136,6 +137,7 @@ export interface ValidationResult {
 }
 
 export interface User {
+  id: string;
   name: string;
   email: string;
 }

@@ -106,82 +106,11 @@ type ReportRow = {
   dateMapped: string;
 };
 
-const MOCK_REPORT_ROWS: ReportRow[] = [
-  { firstName: 'Ana', lastName: 'Lopez', middleName: 'D.', sex: 'Female', age: 19, barangay: 'Poblacion', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 10', schoolName: 'Tangub NHS', is4PsMember: true, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-01' },
-  { firstName: 'Rico', lastName: 'Mendoza', middleName: 'P.', sex: 'Male', age: 23, barangay: 'Mantic', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 8', schoolName: 'Mantic ES', is4PsMember: false, isIP: true, isPwd: false, pwdType: '', dateMapped: '2026-03-03' },
-  { firstName: 'Grace', lastName: 'Arenas', middleName: 'L.', sex: 'Female', age: 32, barangay: 'Maloro', civilStatus: 'Married', isBlp: false, lastGradeCompleted: 'Grade 6', schoolName: 'Maloro ES', is4PsMember: true, isIP: false, isPwd: true, pwdType: 'Hearing', dateMapped: '2026-03-04' },
-  { firstName: 'Joel', lastName: 'Cabiles', middleName: 'R.', sex: 'Male', age: 45, barangay: 'Sicot', civilStatus: 'Married', isBlp: true, lastGradeCompleted: '', schoolName: '', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-05' },
-  { firstName: 'Mae', lastName: 'Torres', middleName: 'C.', sex: 'Female', age: 27, barangay: 'Silangit', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 11', schoolName: 'Tangub SHS', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-06' },
-  { firstName: 'Nilo', lastName: 'Sarmiento', middleName: 'G.', sex: 'Male', age: 61, barangay: 'Taguite', civilStatus: 'Widowed', isBlp: true, lastGradeCompleted: '', schoolName: '', is4PsMember: false, isIP: false, isPwd: true, pwdType: 'Visual', dateMapped: '2026-03-06' },
-  { firstName: 'Aiza', lastName: 'Paredes', middleName: 'M.', sex: 'Female', age: 17, barangay: 'Paiton', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 9', schoolName: 'Paiton NHS', is4PsMember: true, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-08' },
-  { firstName: 'Bong', lastName: 'Galera', middleName: 'T.', sex: 'Male', age: 38, barangay: 'Balatacan', civilStatus: 'Married', isBlp: false, lastGradeCompleted: 'Grade 7', schoolName: 'Balatacan ES', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-09' },
-];
-
-const MOCK_STATS = {
-  total: 68,
-  male: 34,
-  female: 34,
-  fourPs: 22,
-  ip: 9,
-  pwd: 6,
-  studying: 18,
-  notStudying: 50,
-  interested: 57,
-  youth: 29,
-  adult: 31,
-  senior: 8,
-  barangayEntries: [
-    ['Poblacion', 14],
-    ['Mantic', 11],
-    ['Maloro', 9],
-    ['Silangit', 8],
-    ['Balatacan', 7],
-    ['Taguite', 6],
-  ] as [string, number][],
-  gradeEntries: [
-    ['Grade 10', 16],
-    ['Grade 8', 14],
-    ['Grade 6', 10],
-    ['Basic Literacy Program (BLP)', 9],
-    ['Grade 11', 7],
-  ] as [string, number][],
-  topTongues: [
-    ['Cebuano', 28],
-    ['Subanen', 13],
-    ['Tagalog', 11],
-    ['Bisaya', 9],
-    ['Hiligaynon', 5],
-  ] as [string, number][],
-  civilEntries: [
-    ['Single', 36],
-    ['Married', 24],
-    ['Widowed', 6],
-    ['Separated', 2],
-  ] as [string, number][],
-  transportEntries: [
-    ['Walk', 31],
-    ['Motorcycle', 19],
-    ['Tricycle', 10],
-    ['Jeep', 8],
-  ] as [string, number][],
-  pwdTypeEntries: [
-    ['Visual', 2],
-    ['Hearing', 2],
-    ['Orthopedic', 1],
-    ['Psychosocial', 1],
-  ] as [string, number][],
-};
-
 const AnalyticsPage: React.FC = () => {
   const { learners } = useAppContext();
-  const hasRealData = learners.length > 0;
   const [activeSection, setActiveSection] = useState('overview');
 
   const reportRows = useMemo<ReportRow[]>(() => {
-    if (!hasRealData) {
-      return MOCK_REPORT_ROWS;
-    }
-
     return learners.map(l => ({
       firstName: l.firstName,
       lastName: l.lastName,
@@ -199,13 +128,9 @@ const AnalyticsPage: React.FC = () => {
       pwdType: l.pwdType || '',
       dateMapped: l.dateMapped,
     }));
-  }, [hasRealData, learners]);
+  }, [learners]);
 
   const stats = useMemo(() => {
-    if (!hasRealData) {
-      return MOCK_STATS;
-    }
-
     let total = 0, male = 0, female = 0, fourPs = 0, ip = 0, pwd = 0;
     let studying = 0, notStudying = 0, interested = 0;
     let youth = 0, adult = 0, senior = 0;
@@ -257,7 +182,7 @@ const AnalyticsPage: React.FC = () => {
       youth, adult, senior,
       barangayEntries, gradeEntries, topTongues, civilEntries, transportEntries, pwdTypeEntries,
     };
-  }, [hasRealData, learners]);
+  }, [learners]);
 
   /* ── PDF Export ─────────────────────────────────────────────────────────── */
   const downloadPDF = (mode: 'summary' | 'individual' | 'byBarangay' | 'byEducation') => {
@@ -424,14 +349,6 @@ const AnalyticsPage: React.FC = () => {
       </IonHeader>
 
       <IonContent>
-        {!hasRealData && (
-          <IonCard style={{ margin: '16px 16px 0', border: '1px dashed #93C5FD' }}>
-            <IonCardContent style={{ fontSize: 13, color: '#1E3A8A', fontWeight: 600 }}>
-              Showing mock analytics data for preview. Add learner records to replace this with your live analytics.
-            </IonCardContent>
-          </IonCard>
-        )}
-
         {/* ── Download Buttons ── */}
         <Heading>Download PDF Reports</Heading>
         <IonCard>

@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import {
   IonPage, IonContent, IonInput, IonButton, IonText,
   IonSpinner, IonIcon, IonInputPasswordToggle,
+  IonAlert, IonLoading,
 } from '@ionic/react';
 import { personOutline, lockClosedOutline, mailOutline } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { DISTRICT, DIVISION, REGION } from '../utils/constants';
-
-const STORED_ACCOUNTS: { email: string; name: string }[] = [];
+import { supabase } from '../utils/supabaseClient';
 
 const LoginPage: React.FC = () => {
+  const history = useHistory();
   const { setUser } = useAppContext();
   const [isSignUp, setIsSignUp]   = useState(false);
   const [name, setName]           = useState('');
@@ -17,28 +19,93 @@ const LoginPage: React.FC = () => {
   const [password, setPassword]   = useState('');
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
     const trimmedEmail = email.trim().toLowerCase();
+    
     if (!trimmedEmail || !password) {
       setError('Email and password are required.');
       return;
     }
-    if (isSignUp && !name.trim()) {
-      setError('Full name is required.');
-      return;
-    }
+    
     if (isSignUp) {
-      STORED_ACCOUNTS.push({ email: trimmedEmail, name: name.trim() });
+      if (!name.trim()) {
+        setError('Full name is required.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.');
+        return;
+      }
     }
-    const account = STORED_ACCOUNTS.find(a => a.email === trimmedEmail);
-    const displayName = account ? account.name : (name.trim() || trimmedEmail.split('@')[0]);
+    
     setLoading(true);
-    setTimeout(() => {
+    
+    try {
+      if (isSignUp) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password: password,
+          options: {
+            data: {
+              full_name: name.trim(),
+            },
+          },
+        });
+        
+        if (signUpError) {
+          setError(signUpError.message);
+          setLoading(false);
+          return;
+        }
+
+        if (data.user) {
+          await supabase.auth.signOut();
+          setLoading(false);
+          setShowSignupSuccess(true);
+          return;
+        }
+      } else {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password: password,
+        });
+        
+        if (signInError) {
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+        
+        if (data.user) {
+          const displayName = data.user.user_metadata?.full_name || trimmedEmail.split('@')[0];
+          setUser({
+            id: data.user.id,
+            name: displayName,
+            email: trimmedEmail,
+          });
+          setName('');
+          setEmail('');
+          setPassword('');
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      setUser({ name: displayName, email: trimmedEmail });
-    }, 600);
+    }
+  };
+
+  const handleSignupSuccess = () => {
+    setShowSignupSuccess(false);
+    setIsSignUp(false);
+    setName('');
+    setEmail('');
+    setPassword('');
+    setError('');
+    history.replace('/login');
   };
 
   const switchMode = () => { setIsSignUp(!isSignUp); setError(''); };
@@ -161,6 +228,25 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
       </IonContent>
+
+      <IonAlert
+        isOpen={showSignupSuccess}
+        header="Signup Successful"
+        message="Your account has been created. Please confirm to continue back to the login page."
+        buttons={[
+          {
+            text: 'OK',
+            handler: handleSignupSuccess,
+          },
+        ]}
+        onDidDismiss={() => setShowSignupSuccess(false)}
+      />
+
+      <IonLoading
+        isOpen={loading}
+        message={isSignUp ? 'Creating your account...' : 'Signing you in...'}
+        spinner="crescent"
+      />
     </IonPage>
   );
 };
