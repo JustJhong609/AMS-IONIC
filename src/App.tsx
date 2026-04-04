@@ -12,7 +12,7 @@ import LearnerDetailPage from './pages/LearnerDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import { AppContext } from './context/AppContext';
 import { useAuth } from './utils/useAuth';
-import { supabase } from './utils/supabaseClient';
+import { hasSupabaseConfig, supabase } from './utils/supabaseClient';
 import { fetchLearners } from './utils/learnerApi';
 
 setupIonicReact({ mode: 'md' });
@@ -88,39 +88,62 @@ const App: React.FC = () => {
   return (
     <AppContext.Provider value={{ learners, setLearners, user, setUser, loading, setLoading }}>
       <IonApp>
+        {!hasSupabaseConfig && (
+          <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            textAlign: 'center',
+            background: 'linear-gradient(160deg, #1565C0 0%, #0d47a1 55%, #1a237e 100%)',
+            color: '#fff',
+            fontFamily: 'system-ui, sans-serif',
+          }}>
+            <div style={{ maxWidth: 520 }}>
+              <h1 style={{ marginBottom: 12 }}>Supabase configuration required</h1>
+              <p style={{ margin: 0, lineHeight: 1.6 }}>
+                Set <strong>VITE_SUPABASE_URL</strong> and <strong>VITE_SUPABASE_ANON_KEY</strong> in your Vercel project settings.
+                The app will not run until those environment variables are available.
+              </p>
+            </div>
+          </div>
+        )}
         <IonLoading
           isOpen={loading}
           message="Please wait..."
           spinner="crescent"
         />
-        <IonReactRouter>
-          <Switch>
-            <Route exact path="/login">
-              {user ? <Redirect to="/home" /> : <LoginPage />}
-            </Route>
+        {hasSupabaseConfig && (
+          <IonReactRouter>
+            <Switch>
+              <Route exact path="/login">
+                {user ? <Redirect to="/home" /> : <LoginPage />}
+              </Route>
 
-            <Route exact path="/home">
-              {user ? <HomePage /> : <Redirect to="/login" />}
-            </Route>
-            <Route exact path="/learners">
-              {user ? <LearnerListPage /> : <Redirect to="/login" />}
-            </Route>
-            <Route exact path="/learners/new">
-              {user ? <LearnerFormPage /> : <Redirect to="/login" />}
-            </Route>
-            <Route exact path="/learners/edit/:id">
-              {user ? <LearnerFormPage /> : <Redirect to="/login" />}
-            </Route>
-            <Route exact path="/learners/:id">
-              {user ? <LearnerDetailPage /> : <Redirect to="/login" />}
-            </Route>
-            <Route exact path="/analytics">
-              {user ? <AnalyticsPage /> : <Redirect to="/login" />}
-            </Route>
+              <Route exact path="/home">
+                {user ? <HomePage /> : <Redirect to="/login" />}
+              </Route>
+              <Route exact path="/learners">
+                {user ? <LearnerListPage /> : <Redirect to="/login" />}
+              </Route>
+              <Route exact path="/learners/new">
+                {user ? <LearnerFormPage /> : <Redirect to="/login" />}
+              </Route>
+              <Route exact path="/learners/edit/:id">
+                {user ? <LearnerFormPage /> : <Redirect to="/login" />}
+              </Route>
+              <Route exact path="/learners/:id">
+                {user ? <LearnerDetailPage /> : <Redirect to="/login" />}
+              </Route>
+              <Route exact path="/analytics">
+                {user ? <AnalyticsPage /> : <Redirect to="/login" />}
+              </Route>
 
-            <Redirect to={user ? '/home' : '/login'} />
-          </Switch>
-        </IonReactRouter>
+              <Redirect to={user ? '/home' : '/login'} />
+            </Switch>
+          </IonReactRouter>
+        )}
       </IonApp>
     </AppContext.Provider>
   );
