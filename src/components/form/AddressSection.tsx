@@ -2,6 +2,7 @@ import React from 'react';
 import { IonText, IonTextarea } from '@ionic/react';
 import { LearnerFormData, ValidationErrors } from '../../types';
 import { BARANGAY_OPTIONS } from '../../utils/constants';
+import FormInput from '../FormInput';
 import FormSelect from '../FormSelect';
 
 interface Props {
@@ -10,13 +11,29 @@ interface Props {
   onChange: (field: keyof LearnerFormData, value: string) => void;
 }
 
-const AddressSection: React.FC<Props> = ({ data, errors, onChange }) => (
+const AddressSection: React.FC<Props> = ({ data, errors, onChange }) => {
+  const OTHER_OPTION = 'Others (Please Specify)';
+  const barangayOptions = [...BARANGAY_OPTIONS, OTHER_OPTION];
+
+  return (
   <div>
     <IonText><h3 style={sectionStyle}>🏠 Address</h3></IonText>
 
     <FormSelect label="Barangay" value={data.barangay}
-      onChange={v => onChange('barangay', v)}
-      options={BARANGAY_OPTIONS} required error={errors.barangay} />
+      onChange={v => {
+        onChange('barangay', v);
+        if (v !== OTHER_OPTION) onChange('barangayOther', '');
+      }}
+      options={barangayOptions} required error={errors.barangay} />
+
+    {data.barangay === OTHER_OPTION && (
+      <FormInput
+        label="Barangay - Others (Please Specify, optional)"
+        value={data.barangayOther}
+        onChange={v => onChange('barangayOther', v)}
+        placeholder="Enter barangay"
+      />
+    )}
 
     <div className="form-group">
       <IonTextarea
@@ -33,7 +50,8 @@ const AddressSection: React.FC<Props> = ({ data, errors, onChange }) => (
       {errors.completeAddress && <div className="error-text">{errors.completeAddress}</div>}
     </div>
   </div>
-);
+  );
+};
 
 const sectionStyle: React.CSSProperties = { fontWeight: 800, color: 'var(--ion-color-primary)', marginBottom: 12 };
 export default AddressSection;

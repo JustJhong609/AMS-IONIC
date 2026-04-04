@@ -16,6 +16,7 @@ import EducationSection   from '../components/form/EducationSection';
 import AddressSection     from '../components/form/AddressSection';
 import FamilySection      from '../components/form/FamilySection';
 import LogisticsSection   from '../components/form/LogisticsSection';
+import { BARANGAY_OPTIONS, MOTHER_TONGUE_OPTIONS } from '../utils/constants';
 
 const TOTAL_STEPS = 5;
 
@@ -29,6 +30,12 @@ const LearnerFormPage: React.FC = () => {
 
   const getInitialData = (): LearnerFormData => {
     if (existingLearner) {
+      const OTHER_OPTION = 'Others (Please Specify)';
+      const isCustomMotherTongue =
+        !!existingLearner.motherTongue && !MOTHER_TONGUE_OPTIONS.includes(existingLearner.motherTongue as any);
+      const isCustomBarangay =
+        !!existingLearner.barangay && !BARANGAY_OPTIONS.includes(existingLearner.barangay as any);
+
       return {
         region:    existingLearner.region,
         division:  existingLearner.division,
@@ -43,7 +50,8 @@ const LearnerFormPage: React.FC = () => {
         civilStatus: existingLearner.civilStatus,
         birthdate: existingLearner.birthdate,
         age: String(existingLearner.age),
-        motherTongue: existingLearner.motherTongue,
+        motherTongue: isCustomMotherTongue ? OTHER_OPTION : existingLearner.motherTongue,
+        motherTongueOther: isCustomMotherTongue ? existingLearner.motherTongue : '',
         isIP: existingLearner.isIP ? 'Yes' : 'No',
         ipTribe: existingLearner.ipTribe || '',
         religion: existingLearner.religion || '',
@@ -52,7 +60,8 @@ const LearnerFormPage: React.FC = () => {
         isPwd: existingLearner.isPwd ? 'Yes' : 'No',
         pwdType: existingLearner.pwdType || '',
         pwdTypeOther: existingLearner.pwdTypeOther || '',
-        barangay: existingLearner.barangay,
+        barangay: isCustomBarangay ? OTHER_OPTION : existingLearner.barangay,
+        barangayOther: isCustomBarangay ? existingLearner.barangay : '',
         completeAddress: existingLearner.completeAddress,
         roleInFamily: existingLearner.roleInFamily,
         fatherName: existingLearner.fatherName || '',
@@ -109,6 +118,16 @@ const LearnerFormPage: React.FC = () => {
   };
 
   const handleSave = () => {
+    const OTHER_OPTION = 'Others (Please Specify)';
+    const resolvedMotherTongue =
+      formData.motherTongue === OTHER_OPTION && formData.motherTongueOther.trim()
+        ? formData.motherTongueOther.trim()
+        : formData.motherTongue;
+    const resolvedBarangay =
+      formData.barangay === OTHER_OPTION && formData.barangayOther.trim()
+        ? formData.barangayOther.trim()
+        : formData.barangay;
+
     const birthDate = new Date(formData.birthdate);
     const learner: Learner = {
       id: existingLearner?.id || generateId(),
@@ -125,7 +144,7 @@ const LearnerFormPage: React.FC = () => {
       civilStatus: formData.civilStatus,
       birthdate: formData.birthdate,
       age: calculateAge(formData.birthdate),
-      motherTongue: formData.motherTongue,
+      motherTongue: resolvedMotherTongue,
       isIP: formData.isIP === 'Yes',
       ipTribe: formData.ipTribe.trim() || undefined,
       religion: formData.religion.trim() || undefined,
@@ -134,7 +153,7 @@ const LearnerFormPage: React.FC = () => {
       isPwd: formData.isPwd === 'Yes',
       pwdType: formData.pwdType || undefined,
       pwdTypeOther: formData.pwdTypeOther.trim() || undefined,
-      barangay: formData.barangay,
+      barangay: resolvedBarangay,
       completeAddress: formData.completeAddress.trim(),
       roleInFamily: formData.roleInFamily,
       fatherName: formData.fatherName.trim() || undefined,

@@ -19,6 +19,9 @@ interface Props {
 }
 
 const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
+  const OTHER_OPTION = 'Others (Please Specify)';
+  const motherTongueOptions = [...MOTHER_TONGUE_OPTIONS, OTHER_OPTION];
+
   const handleBirthdate = (v: string) => {
     onChange('birthdate', v);
     if (v) {
@@ -56,8 +59,20 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
       )}
 
       <FormSelect label="Mother Tongue" value={data.motherTongue}
-        onChange={v => onChange('motherTongue', v)}
-        options={MOTHER_TONGUE_OPTIONS} required error={errors.motherTongue} />
+        onChange={v => {
+          onChange('motherTongue', v);
+          if (v !== OTHER_OPTION) onChange('motherTongueOther', '');
+        }}
+        options={motherTongueOptions} required error={errors.motherTongue} />
+
+      {data.motherTongue === OTHER_OPTION && (
+        <FormInput
+          label="Mother Tongue - Others (Please Specify, optional)"
+          value={data.motherTongueOther}
+          onChange={v => onChange('motherTongueOther', v)}
+          placeholder="Enter mother tongue"
+        />
+      )}
 
       <FormSelect label="Occupation Type" value={data.occupationType ?? ''}
         onChange={v => onChange('occupationType', v)}

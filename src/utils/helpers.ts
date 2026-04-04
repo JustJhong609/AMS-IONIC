@@ -17,6 +17,7 @@ export const createEmptyFormData = (): LearnerFormData => ({
   birthdate: '',
   age: '',
   motherTongue: '',
+  motherTongueOther: '',
   isIP: '',
   ipTribe: '',
   religion: '',
@@ -27,6 +28,7 @@ export const createEmptyFormData = (): LearnerFormData => ({
   pwdTypeOther: '',
 
   barangay: '',
+  barangayOther: '',
   completeAddress: '',
 
   roleInFamily: '',

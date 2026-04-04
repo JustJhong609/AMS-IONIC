@@ -1,38 +1,72 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonBackButton, IonCard, IonCardContent, IonGrid,
-  IonRow, IonCol, IonText, IonButton, IonIcon,
+  IonRow, IonCol, IonButton, IonIcon, IonItem, IonLabel,
+  IonSelect, IonSelectOption,
 } from '@ionic/react';
 import { downloadOutline } from 'ionicons/icons';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  type ChartOptions,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAppContext } from '../context/AppContext';
 import { BARANGAY_OPTIONS } from '../utils/constants';
 import { formatDate } from '../utils/helpers';
 
-/* ── Mini bar chart ──────────────────────────────────────────────────────────── */
-const BarChart: React.FC<{ data: { label: string; value: number; color: string }[]; max: number }> = ({ data, max }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-    {data.map(item => (
-      <div key={item.label}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#424242' }}>{item.label}</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: item.color }}>{item.value}</span>
-        </div>
-        <div style={{ height: 8, borderRadius: 4, background: '#F5F5F5', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
-            borderRadius: 4,
-            background: item.color,
-            width: max > 0 ? `${(item.value / max) * 100}%` : '0%',
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
-      </div>
-    ))}
-  </div>
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+type BarDatum = { label: string; value: number; color: string };
+
+/* ── Chart.js bar chart ──────────────────────────────────────────────────────── */
+const ChartBar: React.FC<{ data: BarDatum[] }> = ({ data }) => {
+  const chartData = {
+    labels: data.map(d => d.label),
+    datasets: [
+      {
+        label: 'Count',
+        data: data.map(d => d.value),
+        backgroundColor: data.map(d => d.color),
+        borderRadius: 8,
+        borderSkipped: false,
+      },
+    ],
+  };
+
+  const options: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    scales: {
+      x: {
+        beginAtZero: true,
+        ticks: { precision: 0 },
+        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      },
+      y: {
+        grid: { display: false },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true },
+    },
+  };
+
+  return (
+    <div style={{ height: Math.max(220, data.length * 42) }}>
+      <Bar data={chartData} options={options} />
+    </div>
+  );
+};
 
 /* ── Stat card ───────────────────────────────────────────────────────────────── */
 const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({
@@ -54,10 +88,124 @@ const Heading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
+type ReportRow = {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  sex: 'Male' | 'Female';
+  age: number;
+  barangay: string;
+  civilStatus: string;
+  isBlp: boolean;
+  lastGradeCompleted: string;
+  schoolName: string;
+  is4PsMember: boolean;
+  isIP: boolean;
+  isPwd: boolean;
+  pwdType: string;
+  dateMapped: string;
+};
+
+const MOCK_REPORT_ROWS: ReportRow[] = [
+  { firstName: 'Ana', lastName: 'Lopez', middleName: 'D.', sex: 'Female', age: 19, barangay: 'Poblacion', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 10', schoolName: 'Tangub NHS', is4PsMember: true, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-01' },
+  { firstName: 'Rico', lastName: 'Mendoza', middleName: 'P.', sex: 'Male', age: 23, barangay: 'Mantic', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 8', schoolName: 'Mantic ES', is4PsMember: false, isIP: true, isPwd: false, pwdType: '', dateMapped: '2026-03-03' },
+  { firstName: 'Grace', lastName: 'Arenas', middleName: 'L.', sex: 'Female', age: 32, barangay: 'Maloro', civilStatus: 'Married', isBlp: false, lastGradeCompleted: 'Grade 6', schoolName: 'Maloro ES', is4PsMember: true, isIP: false, isPwd: true, pwdType: 'Hearing', dateMapped: '2026-03-04' },
+  { firstName: 'Joel', lastName: 'Cabiles', middleName: 'R.', sex: 'Male', age: 45, barangay: 'Sicot', civilStatus: 'Married', isBlp: true, lastGradeCompleted: '', schoolName: '', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-05' },
+  { firstName: 'Mae', lastName: 'Torres', middleName: 'C.', sex: 'Female', age: 27, barangay: 'Silangit', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 11', schoolName: 'Tangub SHS', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-06' },
+  { firstName: 'Nilo', lastName: 'Sarmiento', middleName: 'G.', sex: 'Male', age: 61, barangay: 'Taguite', civilStatus: 'Widowed', isBlp: true, lastGradeCompleted: '', schoolName: '', is4PsMember: false, isIP: false, isPwd: true, pwdType: 'Visual', dateMapped: '2026-03-06' },
+  { firstName: 'Aiza', lastName: 'Paredes', middleName: 'M.', sex: 'Female', age: 17, barangay: 'Paiton', civilStatus: 'Single', isBlp: false, lastGradeCompleted: 'Grade 9', schoolName: 'Paiton NHS', is4PsMember: true, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-08' },
+  { firstName: 'Bong', lastName: 'Galera', middleName: 'T.', sex: 'Male', age: 38, barangay: 'Balatacan', civilStatus: 'Married', isBlp: false, lastGradeCompleted: 'Grade 7', schoolName: 'Balatacan ES', is4PsMember: false, isIP: false, isPwd: false, pwdType: '', dateMapped: '2026-03-09' },
+];
+
+const MOCK_STATS = {
+  total: 68,
+  male: 34,
+  female: 34,
+  fourPs: 22,
+  ip: 9,
+  pwd: 6,
+  studying: 18,
+  notStudying: 50,
+  interested: 57,
+  youth: 29,
+  adult: 31,
+  senior: 8,
+  barangayEntries: [
+    ['Poblacion', 14],
+    ['Mantic', 11],
+    ['Maloro', 9],
+    ['Silangit', 8],
+    ['Balatacan', 7],
+    ['Taguite', 6],
+  ] as [string, number][],
+  gradeEntries: [
+    ['Grade 10', 16],
+    ['Grade 8', 14],
+    ['Grade 6', 10],
+    ['Basic Literacy Program (BLP)', 9],
+    ['Grade 11', 7],
+  ] as [string, number][],
+  topTongues: [
+    ['Cebuano', 28],
+    ['Subanen', 13],
+    ['Tagalog', 11],
+    ['Bisaya', 9],
+    ['Hiligaynon', 5],
+  ] as [string, number][],
+  civilEntries: [
+    ['Single', 36],
+    ['Married', 24],
+    ['Widowed', 6],
+    ['Separated', 2],
+  ] as [string, number][],
+  transportEntries: [
+    ['Walk', 31],
+    ['Motorcycle', 19],
+    ['Tricycle', 10],
+    ['Jeep', 8],
+  ] as [string, number][],
+  pwdTypeEntries: [
+    ['Visual', 2],
+    ['Hearing', 2],
+    ['Orthopedic', 1],
+    ['Psychosocial', 1],
+  ] as [string, number][],
+};
+
 const AnalyticsPage: React.FC = () => {
   const { learners } = useAppContext();
+  const hasRealData = learners.length > 0;
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const reportRows = useMemo<ReportRow[]>(() => {
+    if (!hasRealData) {
+      return MOCK_REPORT_ROWS;
+    }
+
+    return learners.map(l => ({
+      firstName: l.firstName,
+      lastName: l.lastName,
+      middleName: l.middleName,
+      sex: l.sex,
+      age: l.age,
+      barangay: l.barangay,
+      civilStatus: l.civilStatus,
+      isBlp: l.isBlp,
+      lastGradeCompleted: l.lastGradeCompleted,
+      schoolName: l.schoolName || '',
+      is4PsMember: l.is4PsMember,
+      isIP: l.isIP,
+      isPwd: l.isPwd,
+      pwdType: l.pwdType || '',
+      dateMapped: l.dateMapped,
+    }));
+  }, [hasRealData, learners]);
 
   const stats = useMemo(() => {
+    if (!hasRealData) {
+      return MOCK_STATS;
+    }
+
     let total = 0, male = 0, female = 0, fourPs = 0, ip = 0, pwd = 0;
     let studying = 0, notStudying = 0, interested = 0;
     let youth = 0, adult = 0, senior = 0;
@@ -109,7 +257,7 @@ const AnalyticsPage: React.FC = () => {
       youth, adult, senior,
       barangayEntries, gradeEntries, topTongues, civilEntries, transportEntries, pwdTypeEntries,
     };
-  }, [learners]);
+  }, [hasRealData, learners]);
 
   /* ── PDF Export ─────────────────────────────────────────────────────────── */
   const downloadPDF = (mode: 'summary' | 'individual' | 'byBarangay' | 'byEducation') => {
@@ -129,7 +277,7 @@ const AnalyticsPage: React.FC = () => {
       autoTable(doc, {
         startY: 28,
         head: [['#', 'Full Name', 'Sex', 'Age', 'Barangay', 'Civil Status', 'Education', 'School/Course', '4Ps/IP', 'PWD', 'Date Mapped']],
-        body: learners.map((l, i) => [
+        body: reportRows.map((l, i) => [
           i + 1,
           `${l.lastName}, ${l.firstName} ${l.middleName}`,
           l.sex,
@@ -150,8 +298,8 @@ const AnalyticsPage: React.FC = () => {
 
     } else if (mode === 'byBarangay') {
       addHeader();
-      const grouped: Record<string, typeof learners> = {};
-      learners.forEach(l => { if (!grouped[l.barangay]) grouped[l.barangay] = []; grouped[l.barangay].push(l); });
+      const grouped: Record<string, ReportRow[]> = {};
+      reportRows.forEach(l => { if (!grouped[l.barangay]) grouped[l.barangay] = []; grouped[l.barangay].push(l); });
       let y = 28;
       Object.entries(grouped).forEach(([brgy, list]) => {
         doc.setFontSize(11); doc.setFont('helvetica', 'bold');
@@ -171,8 +319,8 @@ const AnalyticsPage: React.FC = () => {
 
     } else if (mode === 'byEducation') {
       addHeader();
-      const grouped: Record<string, typeof learners> = {};
-      learners.forEach(l => { const k = l.isBlp ? 'Basic Literacy Program (BLP)' : (l.lastGradeCompleted || 'Not Specified'); if (!grouped[k]) grouped[k] = []; grouped[k].push(l); });
+      const grouped: Record<string, ReportRow[]> = {};
+      reportRows.forEach(l => { const k = l.isBlp ? 'Basic Literacy Program (BLP)' : (l.lastGradeCompleted || 'Not Specified'); if (!grouped[k]) grouped[k] = []; grouped[k].push(l); });
       let y = 28;
       Object.entries(grouped).forEach(([grade, list]) => {
         if (y > 170) { doc.addPage(); y = 14; }
@@ -266,26 +414,6 @@ const AnalyticsPage: React.FC = () => {
   const transportData = toBarData(stats.transportEntries, LIGHT_BLUES);
   const pwdTypeData   = toBarData(stats.pwdTypeEntries,  PURPLE_SHADES);
 
-  const maxOf = (arr: { value: number }[]) => Math.max(...arr.map(d => d.value), 1);
-
-  if (total === 0) {
-    return (
-      <IonPage>
-        <IonHeader>
-          <IonToolbar color="primary">
-            <IonButtons slot="start"><IonBackButton defaultHref="/home" /></IonButtons>
-            <IonTitle>Analytics</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">
-          <div style={{ textAlign: 'center', marginTop: 80 }}>
-            <IonText color="medium"><h2>No Data Yet</h2><p>Map some learners first to see analytics.</p></IonText>
-          </div>
-        </IonContent>
-      </IonPage>
-    );
-  }
-
   return (
     <IonPage>
       <IonHeader>
@@ -296,6 +424,14 @@ const AnalyticsPage: React.FC = () => {
       </IonHeader>
 
       <IonContent>
+        {!hasRealData && (
+          <IonCard style={{ margin: '16px 16px 0', border: '1px dashed #93C5FD' }}>
+            <IonCardContent style={{ fontSize: 13, color: '#1E3A8A', fontWeight: 600 }}>
+              Showing mock analytics data for preview. Add learner records to replace this with your live analytics.
+            </IonCardContent>
+          </IonCard>
+        )}
+
         {/* ── Download Buttons ── */}
         <Heading>Download PDF Reports</Heading>
         <IonCard>
@@ -317,129 +453,166 @@ const AnalyticsPage: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
-        {/* ── Overview ── */}
-        <Heading>Overview</Heading>
+        <Heading>View Section</Heading>
         <IonCard>
           <IonCardContent>
-            <IonGrid>
-              <IonRow>
-                <IonCol><StatCard label="Total" value={total} /></IonCol>
-                <IonCol><StatCard label="Male" value={male} color="#1E88E5" /></IonCol>
-                <IonCol><StatCard label="Female" value={female} color="#E91E63" /></IonCol>
-              </IonRow>
-            </IonGrid>
+            <IonItem lines="none" style={{ '--background': '#F8FAFC', borderRadius: 12 } as React.CSSProperties}>
+              <IonLabel position="stacked">Analytics Category</IonLabel>
+              <IonSelect value={activeSection} interface="popover" onIonChange={e => setActiveSection(e.detail.value)}>
+                <IonSelectOption value="overview">Overview</IonSelectOption>
+                <IonSelectOption value="study">Study &amp; Interest</IonSelectOption>
+                <IonSelectOption value="age">Age Groups</IonSelectOption>
+                <IonSelectOption value="socio">Socio-Economic</IonSelectOption>
+                <IonSelectOption value="pwd">PWD by Type</IonSelectOption>
+                <IonSelectOption value="barangay">By Barangay</IonSelectOption>
+                <IonSelectOption value="education">By Educational Attainment</IonSelectOption>
+                <IonSelectOption value="civil">By Civil Status</IonSelectOption>
+                <IonSelectOption value="tongue">Top Mother Tongues</IonSelectOption>
+                <IonSelectOption value="transport">By Transport Mode</IonSelectOption>
+              </IonSelect>
+            </IonItem>
           </IonCardContent>
         </IonCard>
+
+        {/* ── Overview ── */}
+        {activeSection === 'overview' && (
+          <>
+            <Heading>Overview</Heading>
+            <IonCard>
+              <IonCardContent>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol><StatCard label="Total" value={total} /></IonCol>
+                    <IonCol><StatCard label="Male" value={male} color="#1E88E5" /></IonCol>
+                    <IonCol><StatCard label="Female" value={female} color="#E91E63" /></IonCol>
+                  </IonRow>
+                </IonGrid>
+              </IonCardContent>
+            </IonCard>
+          </>
+        )}
 
         {/* ── Study / Interest ── */}
-        <Heading>Study &amp; Interest</Heading>
-        <IonCard>
-          <IonCardContent>
-            <IonGrid>
-              <IonRow>
-                <IonCol><StatCard label="Studying" value={studying} color="var(--ion-color-success)" /></IonCol>
-                <IonCol><StatCard label="Not Studying" value={notStudying} color="var(--ion-color-danger)" /></IonCol>
-                <IonCol><StatCard label="ALS Interest" value={interested} color="#FF6F00" /></IonCol>
-              </IonRow>
-            </IonGrid>
-          </IonCardContent>
-        </IonCard>
+        {activeSection === 'study' && (
+          <>
+            <Heading>Study &amp; Interest</Heading>
+            <IonCard>
+              <IonCardContent>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol><StatCard label="Studying" value={studying} color="var(--ion-color-success)" /></IonCol>
+                    <IonCol><StatCard label="Not Studying" value={notStudying} color="var(--ion-color-danger)" /></IonCol>
+                    <IonCol><StatCard label="ALS Interest" value={interested} color="#FF6F00" /></IonCol>
+                  </IonRow>
+                </IonGrid>
+              </IonCardContent>
+            </IonCard>
+          </>
+        )}
 
         {/* ── Age Groups ── */}
-        <Heading>Age Groups</Heading>
-        <IonCard>
-          <IonCardContent>
-            <IonGrid>
-              <IonRow>
-                <IonCol><StatCard label="Youth (≤24)" value={youth} color="#1565C0" /></IonCol>
-                <IonCol><StatCard label="Adult (25–59)" value={adult} color="#00897B" /></IonCol>
-                <IonCol><StatCard label="Senior (60+)" value={senior} color="#7B1FA2" /></IonCol>
-              </IonRow>
-            </IonGrid>
-          </IonCardContent>
-        </IonCard>
+        {activeSection === 'age' && (
+          <>
+            <Heading>Age Groups</Heading>
+            <IonCard>
+              <IonCardContent>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol><StatCard label="Youth (≤24)" value={youth} color="#1565C0" /></IonCol>
+                    <IonCol><StatCard label="Adult (25–59)" value={adult} color="#00897B" /></IonCol>
+                    <IonCol><StatCard label="Senior (60+)" value={senior} color="#7B1FA2" /></IonCol>
+                  </IonRow>
+                </IonGrid>
+              </IonCardContent>
+            </IonCard>
+          </>
+        )}
 
         {/* ── Socio-economic ── */}
-        <Heading>Socio-Economic</Heading>
-        <IonCard>
-          <IonCardContent>
-            <IonGrid>
-              <IonRow>
-                <IonCol><StatCard label="IP" value={ip} color="#7B1FA2" /></IonCol>
-                <IonCol><StatCard label="4Ps Member" value={fourPs} color="#0288D1" /></IonCol>
-                <IonCol><StatCard label="PWD" value={pwd} color="#E65100" /></IonCol>
-              </IonRow>
-            </IonGrid>
-          </IonCardContent>
-        </IonCard>
+        {activeSection === 'socio' && (
+          <>
+            <Heading>Socio-Economic</Heading>
+            <IonCard>
+              <IonCardContent>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol><StatCard label="IP" value={ip} color="#7B1FA2" /></IonCol>
+                    <IonCol><StatCard label="4Ps Member" value={fourPs} color="#0288D1" /></IonCol>
+                    <IonCol><StatCard label="PWD" value={pwd} color="#E65100" /></IonCol>
+                  </IonRow>
+                </IonGrid>
+              </IonCardContent>
+            </IonCard>
+          </>
+        )}
 
         {/* ── PWD Breakdown ── */}
-        {pwdTypeData.length > 0 && (
+        {activeSection === 'pwd' && pwdTypeData.length > 0 && (
           <>
             <Heading>PWD by Type</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={pwdTypeData} max={maxOf(pwdTypeData)} />
+                <ChartBar data={pwdTypeData} />
               </IonCardContent>
             </IonCard>
           </>
         )}
 
         {/* ── Barangay breakdown ── */}
-        {barangayData.length > 0 && (
+        {activeSection === 'barangay' && barangayData.length > 0 && (
           <>
             <Heading>By Barangay</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={barangayData} max={maxOf(barangayData)} />
+                <ChartBar data={barangayData} />
               </IonCardContent>
             </IonCard>
           </>
         )}
 
         {/* ── Last Grade Completed ── */}
-        {gradeData.length > 0 && (
+        {activeSection === 'education' && gradeData.length > 0 && (
           <>
             <Heading>By Educational Attainment</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={gradeData} max={maxOf(gradeData)} />
+                <ChartBar data={gradeData} />
               </IonCardContent>
             </IonCard>
           </>
         )}
 
         {/* ── Civil status ── */}
-        {civilData.length > 0 && (
+        {activeSection === 'civil' && civilData.length > 0 && (
           <>
             <Heading>By Civil Status</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={civilData} max={maxOf(civilData)} />
+                <ChartBar data={civilData} />
               </IonCardContent>
             </IonCard>
           </>
         )}
 
         {/* ── Mother Tongue ── */}
-        {topTongueData.length > 0 && (
+        {activeSection === 'tongue' && topTongueData.length > 0 && (
           <>
             <Heading>Top Mother Tongues</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={topTongueData} max={maxOf(topTongueData)} />
+                <ChartBar data={topTongueData} />
               </IonCardContent>
             </IonCard>
           </>
         )}
 
         {/* ── Transport ── */}
-        {transportData.length > 0 && (
+        {activeSection === 'transport' && transportData.length > 0 && (
           <>
             <Heading>By Transport Mode</Heading>
             <IonCard>
               <IonCardContent>
-                <BarChart data={transportData} max={maxOf(transportData)} />
+                <ChartBar data={transportData} />
               </IonCardContent>
             </IonCard>
           </>
