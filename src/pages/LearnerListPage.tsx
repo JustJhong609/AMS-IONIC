@@ -3,19 +3,22 @@ import {
   IonPage, IonHeader, IonToolbar, IonContent, IonButtons,
   IonBackButton, IonSearchbar, IonFab, IonFabButton, IonIcon,
   IonCard, IonCardContent, IonAvatar, IonText, IonAlert,
-  IonButton,
+  IonButton, IonLoading,
 } from '@ionic/react';
 import { add, pencilOutline, trashOutline, personOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Learner } from '../types';
 import { DISTRICT } from '../utils/constants';
+import { deleteLearner } from '../utils/learnerApi';
 
 const LearnerListPage: React.FC = () => {
-  const { learners, setLearners } = useAppContext();
+  const { learners, user } = useAppContext();
   const history = useHistory();
   const [query, setQuery]         = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Learner | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = learners.filter(l => {
     const q = query.toLowerCase();
@@ -29,9 +32,17 @@ const LearnerListPage: React.FC = () => {
   const initials = (l: Learner) =>
     `${l.firstName.charAt(0)}${l.lastName.charAt(0)}`.toUpperCase();
 
-  const handleDelete = (id: string) => {
-    setLearners(prev => prev.filter(l => l.id !== id));
-    setDeleteTarget(null);
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    try {
+      await deleteLearner(id);
+      setDeleteTarget(null);
+    } catch (error: any) {
+      setDeleteTarget(null);
+      setDeleteError(error?.message || 'Failed to delete learner. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -91,29 +102,33 @@ const LearnerListPage: React.FC = () => {
                     <div style={styles.meta}>
                       Age: {learner.age} &nbsp;|&nbsp; {learner.sex}
                     </div>
-                    <div style={styles.meta} className="ion-text-nowrap"
-                      dangerouslySetInnerHTML={{ __html: learner.completeAddress }}
-                    />
+                    <div style={styles.meta} className="ion-text-nowrap">
+                      Mapped by: {learner.mappedBy}
+                    </div>
                   </div>
 
                   {/* Actions */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }} onClick={e => e.stopPropagation()}>
-                    <IonButton
-                      fill="clear"
-                      size="small"
-                      color="primary"
-                      onClick={() => history.push(`/learners/edit/${learner.id}`)}
-                    >
-                      <IonIcon slot="icon-only" icon={pencilOutline} />
-                    </IonButton>
-                    <IonButton
-                      fill="clear"
-                      size="small"
-                      color="danger"
-                      onClick={() => setDeleteTarget(learner)}
-                    >
-                      <IonIcon slot="icon-only" icon={trashOutline} />
-                    </IonButton>
+                    {user?.id === learner.createdBy && (
+                      <>
+                        <IonButton
+                          fill="clear"
+                          size="small"
+                          color="primary"
+                          onClick={() => history.push(`/learners/edit/${learner.id}`)}
+                        >
+                          <IonIcon slot="icon-only" icon={pencilOutline} />
+                        </IonButton>
+                        <IonButton
+                          fill="clear"
+                          size="small"
+                          color="danger"
+                          onClick={() => setDeleteTarget(learner)}
+                        >
+                          <IonIcon slot="icon-only" icon={trashOutline} />
+                        </IonButton>
+                      </>
+                    )}
                   </div>
                 </div>
               </IonCardContent>
@@ -139,8 +154,22 @@ const LearnerListPage: React.FC = () => {
         message={`Are you sure you want to delete ${deleteTarget?.firstName} ${deleteTarget?.lastName}? This cannot be undone.`}
         buttons={[
           { text: 'Cancel', role: 'cancel' },
-          { text: 'Delete', role: 'destructive', handler: () => handleDelete(deleteTarget!.id) },
+          { text: 'Delete', role: 'destructive', handler: () => { void handleDelete(deleteTarget!.id); } },
         ]}
+      />
+
+      <IonAlert
+        isOpen={!!deleteError}
+        onDidDismiss={() => setDeleteError('')}
+        header="Delete Failed"
+        message={deleteError}
+        buttons={['OK']}
+      />
+
+      <IonLoading
+        isOpen={isDeleting}
+        message="Deleting learner..."
+        spinner="crescent"
       />
     </IonPage>
   );

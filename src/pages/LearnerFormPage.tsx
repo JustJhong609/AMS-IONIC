@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonBackButton, IonButton, IonIcon,
-  IonAlert, IonFooter,
+  IonAlert, IonFooter, IonLoading,
 } from '@ionic/react';
 import { checkmarkOutline, chevronForwardOutline, chevronBackOutline } from 'ionicons/icons';
 import { useHistory, useParams } from 'react-router-dom';
@@ -17,16 +17,18 @@ import AddressSection     from '../components/form/AddressSection';
 import FamilySection      from '../components/form/FamilySection';
 import LogisticsSection   from '../components/form/LogisticsSection';
 import { BARANGAY_OPTIONS, MOTHER_TONGUE_OPTIONS } from '../utils/constants';
+import { createLearner, updateLearner } from '../utils/learnerApi';
 
 const TOTAL_STEPS = 5;
 
 const LearnerFormPage: React.FC = () => {
-  const { learners, setLearners, user } = useAppContext();
+  const { learners, user } = useAppContext();
   const history  = useHistory();
   const { id }   = useParams<{ id?: string }>();
 
   // If editing, pre-fill from existing learner
   const existingLearner = id ? learners.find(l => l.id === id) : undefined;
+  const canEditLearner = !existingLearner || existingLearner.createdBy === user?.id;
 
   const getInitialData = (): LearnerFormData => {
     if (existingLearner) {
@@ -95,6 +97,8 @@ const LearnerFormPage: React.FC = () => {
   const [formData, setFormData] = useState<LearnerFormData>(getInitialData);
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [showSaveAlert, setShowSaveAlert] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLIonContentElement>(null);
 
   const handleChange = (field: keyof LearnerFormData, value: string) => {
@@ -117,7 +121,15 @@ const LearnerFormPage: React.FC = () => {
     contentRef.current?.scrollToTop(300);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!canEditLearner) {
+      setShowSaveAlert(false);
+      setSaveError('You can only edit learner records that you added.');
+      return;
+    }
+
+    if (isSaving) return;
+    setIsSaving(true);
     const OTHER_OPTION = 'Others (Please Specify)';
     const resolvedMotherTongue =
       formData.motherTongue === OTHER_OPTION && formData.motherTongueOther.trim()
@@ -128,7 +140,6 @@ const LearnerFormPage: React.FC = () => {
         ? formData.barangayOther.trim()
         : formData.barangay;
 
-    const birthDate = new Date(formData.birthdate);
     const learner: Learner = {
       id: existingLearner?.id || generateId(),
       region:    formData.region,
@@ -178,14 +189,20 @@ const LearnerFormPage: React.FC = () => {
       dateMapped: formData.dateMapped,
     };
 
-    if (existingLearner) {
-      setLearners(prev => prev.map(l => (l.id === learner.id ? learner : l)));
-    } else {
-      setLearners(prev => [...prev, learner]);
+    try {
+      if (existingLearner) {
+        await updateLearner(learner);
+      } else {
+        await createLearner(learner);
+      }
+      setShowSaveAlert(false);
+      history.replace('/learners');
+    } catch (error: any) {
+      setShowSaveAlert(false);
+      setSaveError(error?.message || 'Failed to save learner. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    setShowSaveAlert(false);
-    history.replace('/learners');
   };
 
   const sectionProps = { data: formData, errors, onChange: handleChange };
@@ -196,6 +213,31 @@ const LearnerFormPage: React.FC = () => {
     <FamilySection      {...sectionProps} />,
     <LogisticsSection   {...sectionProps} />,
   ];
+
+  if (id && existingLearner && !canEditLearner) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar color="primary">
+            <IonButtons slot="start">
+              <IonBackButton defaultHref="/learners" />
+            </IonButtons>
+            <IonTitle>Edit Learner</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          <p style={{ color: '#757575', textAlign: 'center', marginTop: 48 }}>
+            You can only edit learner records that you created.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+            <IonButton onClick={() => history.replace('/learners')}>
+              Go Back to Learners
+            </IonButton>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
 
   return (
     <IonPage>
@@ -221,6 +263,7 @@ const LearnerFormPage: React.FC = () => {
               expand="block"
               fill="outline"
               onClick={goBack}
+              disabled={isSaving}
               style={{ flex: 1, '--border-radius': '50px', '--border-color': '#CBD5E1', '--color': '#374151', '--background': '#F8FAFC', height: 48, fontWeight: 700 } as any}
             >
               <IonIcon slot="start" icon={chevronBackOutline} />
@@ -229,6 +272,7 @@ const LearnerFormPage: React.FC = () => {
             <IonButton
               expand="block"
               onClick={goNext}
+              disabled={isSaving}
               style={{ flex: 2, '--border-radius': '50px', '--background': 'linear-gradient(135deg,#1976d2 0%,#1565C0 60%,#0d47a1 100%)', '--box-shadow': '0 6px 20px rgba(21,101,192,0.38)', height: 48, fontWeight: 800 } as any}
             >
               {step === TOTAL_STEPS - 1 ? (
@@ -251,6 +295,20 @@ const LearnerFormPage: React.FC = () => {
           { text: 'Cancel', role: 'cancel' },
           { text: 'Save', handler: handleSave },
         ]}
+      />
+
+      <IonAlert
+        isOpen={!!saveError}
+        onDidDismiss={() => setSaveError('')}
+        header="Save Failed"
+        message={saveError}
+        buttons={['OK']}
+      />
+
+      <IonLoading
+        isOpen={isSaving}
+        message={existingLearner ? 'Updating learner record...' : 'Saving learner record...'}
+        spinner="crescent"
       />
     </IonPage>
   );

@@ -12,9 +12,10 @@ import {
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { DISTRICT, DIVISION, REGION, BARANGAY_OPTIONS } from '../utils/constants';
+import { signOut } from '../utils/supabaseAuth';
 
 const HomePage: React.FC = () => {
-  const { learners, user, setUser } = useAppContext();
+  const { learners, user } = useAppContext();
   const history = useHistory();
   const [showAbout, setShowAbout] = useState(false);
   const currentYear = new Date().getFullYear();
@@ -48,7 +49,7 @@ const HomePage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setUser(null)}
+              onClick={() => { void signOut(); }}
               title="Sign out"
               style={s.logoutBtn}
             >

@@ -29,7 +29,7 @@ const SectionCard: React.FC<{ title: string; children: React.ReactNode }> = ({ t
 );
 
 const LearnerDetailPage: React.FC = () => {
-  const { learners } = useAppContext();
+  const { learners, user } = useAppContext();
   const { id }       = useParams<{ id: string }>();
   const history      = useHistory();
   const learner      = learners.find(l => l.id === id);
@@ -58,11 +58,13 @@ const LearnerDetailPage: React.FC = () => {
         <IonToolbar color="primary">
           <IonButtons slot="start"><IonBackButton defaultHref="/learners" /></IonButtons>
           <IonTitle>Learner Details</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={() => history.push(`/learners/edit/${learner.id}`)}>
-              <IonIcon slot="icon-only" icon={pencilOutline} />
-            </IonButton>
-          </IonButtons>
+          {user?.id === learner.createdBy && (
+            <IonButtons slot="end">
+              <IonButton onClick={() => history.push(`/learners/edit/${learner.id}`)}>
+                <IonIcon slot="icon-only" icon={pencilOutline} />
+              </IonButton>
+            </IonButtons>
+          )}
         </IonToolbar>
       </IonHeader>
 
