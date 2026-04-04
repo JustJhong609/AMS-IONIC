@@ -85,6 +85,7 @@ export interface LearnerFormData {
   birthdate: string;
   age: string;
   motherTongue: string;
+  motherTongueOther: string;
   isIP: string;
   ipTribe: string;
   religion: string;
@@ -96,6 +97,7 @@ export interface LearnerFormData {
 
   // Address
   barangay: string;
+  barangayOther: string;
   completeAddress: string;
 
   // Family
