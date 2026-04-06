@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AMS IONIC</string>
+    <string name="title_activity_main">AMS IONIC</string>
+    <string name="package_name">com.amsionic.app</string>
+    <string name="custom_url_scheme">com.amsionic.app</string>
+</resources>

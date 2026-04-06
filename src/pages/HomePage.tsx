@@ -7,7 +7,7 @@ import {
 import {
   personAddOutline, listOutline, barChartOutline, informationCircleOutline,
   chevronForwardOutline, logOutOutline, peopleOutline,
-  personOutline, closeOutline,
+  personOutline, closeOutline, syncOutline,
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -15,15 +15,22 @@ import { DISTRICT, DIVISION, REGION, BARANGAY_OPTIONS } from '../utils/constants
 import { signOut } from '../utils/supabaseAuth';
 
 const HomePage: React.FC = () => {
-  const { learners, user } = useAppContext();
+  const { learners, user, pendingSyncCount, isSyncing, syncNow } = useAppContext();
   const history = useHistory();
   const [showAbout, setShowAbout] = useState(false);
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const currentYear = new Date().getFullYear();
   const total   = learners.length;
-  const males   = learners.filter(l => l.sex === 'Male').length;
-  const females = learners.filter(l => l.sex === 'Female').length;
   const firstName = user?.name.split(' ')[0] ?? 'there';
   const initials  = user?.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
+
+  const elementary = learners.filter(l => l.lastGradeCompleted === 'G1 – G6 (Elementary)').length;
+  const jhs = learners.filter(l => 
+    l.lastGradeCompleted?.includes('1st Year HS') || 
+    l.lastGradeCompleted?.includes('2nd Year HS') || 
+    l.lastGradeCompleted?.includes('3rd Year HS')
+  ).length;
+  const blp = learners.filter(l => l.isBlp).length;
 
   const menuItems = [
     { icon: personAddOutline,         label: 'Add New Learner',  desc: 'Map a new ALS learner using Form 1',              color: '#2E7D32', grad: 'linear-gradient(135deg,#43A047,#2E7D32)', path: '/learners/new' },
@@ -77,15 +84,37 @@ const HomePage: React.FC = () => {
                 ? `You have ${total} mapped learner${total !== 1 ? 's' : ''} so far.`
                 : 'Get started by mapping your first learner.'}
             </div>
+            {(isOffline || pendingSyncCount > 0) && (
+              <div style={s.syncNoticeRow}>
+                <div style={s.syncNoticeText}>
+                  {isOffline
+                    ? `Offline mode: ${pendingSyncCount} pending sync ${pendingSyncCount === 1 ? 'item' : 'items'}`
+                    : `${pendingSyncCount} pending sync ${pendingSyncCount === 1 ? 'item' : 'items'}`}
+                </div>
+                {!isOffline && (
+                  <IonButton
+                    fill="solid"
+                    size="small"
+                    onClick={() => { void syncNow(); }}
+                    disabled={isSyncing}
+                    style={s.syncNowBtn}
+                  >
+                    <IonIcon slot="start" icon={syncOutline} />
+                    {isSyncing ? 'Syncing...' : 'Sync now'}
+                  </IonButton>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* ── Quick Stats ── */}
         <div style={s.statsRow}>
           {[
-            { icon: peopleOutline,  val: total,   label: 'Total',  color: '#1565C0' },
-            { icon: personOutline,  val: males,   label: 'Male',   color: '#1976D2' },
-            { icon: personOutline,  val: females, label: 'Female', color: '#7B1FA2' },
+            { icon: peopleOutline,  val: total,      label: 'Total',      color: '#1565C0' },
+            { icon: personOutline,  val: elementary, label: 'Elementary', color: '#1976D2' },
+            { icon: personOutline,  val: jhs,        label: 'JHS',        color: '#7B1FA2' },
+            { icon: personOutline,  val: blp,        label: 'BLP',        color: '#F57C00' },
           ].map(st => (
             <div key={st.label} style={s.statCard}>
               <div style={{ ...s.statIcon, background: `${st.color}18` }}>
@@ -273,6 +302,34 @@ const s: Record<string, React.CSSProperties> = {
   },
   greeting: { fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: -0.3 },
   subGreeting: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 3, fontWeight: 500 },
+  syncNoticeRow: {
+    marginTop: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    width: '100%',
+  },
+  syncNoticeText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.86)',
+    fontWeight: 700,
+    flex: 1,
+  },
+  syncNowBtn: {
+    '--color': '#0f172a',
+    '--background': '#FFD54F',
+    '--background-activated': '#FFCA28',
+    '--border-radius': '999px',
+    '--padding-start': '12px',
+    '--padding-end': '12px',
+    '--box-shadow': '0 4px 14px rgba(0,0,0,0.28)',
+    height: 30,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.3,
+    flexShrink: 0,
+  } as React.CSSProperties,
   statsRow: {
     display: 'flex', gap: 10, padding: '12px 16px',
   },

@@ -38,8 +38,8 @@ const PersonalInfoSection: React.FC<Props> = ({ data, errors, onChange }) => {
         required error={errors.lastName} />
       <FormInput label="First Name" value={data.firstName} onChange={v => onChange('firstName', v)}
         required error={errors.firstName} />
-      <FormInput label="Middle Name" value={data.middleName} onChange={v => onChange('middleName', v)}
-        required error={errors.middleName} />
+      <FormInput label="Middle Name (optional)" value={data.middleName} onChange={v => onChange('middleName', v)}
+        error={errors.middleName} />
       <FormInput label="Name Extension" value={data.nameExtension}
         onChange={v => onChange('nameExtension', v)} placeholder="Jr., Sr., III…" />
 

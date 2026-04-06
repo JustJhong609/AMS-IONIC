@@ -4,6 +4,7 @@
 export interface Learner {
   id: string;
   createdBy?: string;
+  updatedAt?: string;
 
   // Administrative
   region: string;

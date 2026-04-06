@@ -84,7 +84,106 @@ npm run build
 
 ## Roadmap
 
-- [ ] SQLite / Supabase persistence
-- [ ] Offline-first sync
+- [x] SQLite / Supabase persistence
+- [x] Offline-first sync
 - [ ] Export to CSV / Excel
 - [ ] Capacitor native build (Android / iOS)
+
+---
+
+## Build APK (Android Debug)
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Add Android project once:
+
+```bash
+npm run android:add
+```
+
+3. Build web assets and sync native project:
+
+```bash
+npm run android:sync
+```
+
+4. Build debug APK:
+
+```bash
+npm run android:apk
+```
+
+Codespaces shortcut (auto-picks JDK 17/21):
+
+```bash
+npm run android:apk:codespaces
+```
+
+5. APK output path:
+
+```bash
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Troubleshooting (Codespaces)
+
+If you see this Gradle error:
+
+```text
+Unsupported class file major version 69
+```
+
+your active Java is too new for the current Android Gradle setup. Use:
+
+```bash
+npm run android:apk:codespaces
+```
+
+If you prefer manual setup, choose JDK 17 and retry:
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+npm run android:apk
+```
+
+If the helper command only prints the script and stops, check installed JDK paths:
+
+```bash
+ls -la /usr/lib/jvm
+java -version
+```
+
+Then set a valid JAVA_HOME from that list and retry:
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+npm run android:apk
+```
+
+If you hit this Gradle error:
+
+```text
+SDK location not found. Define a valid SDK location with an ANDROID_HOME environment variable or by setting the sdk.dir path in android/local.properties
+```
+
+run the SDK setup helper, then build again:
+
+```bash
+npm run android:sdk:setup
+npm run android:apk:codespaces
+```
+
+If SDK is still not detected, set it manually and retry:
+
+```bash
+export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+export ANDROID_HOME=$ANDROID_SDK_ROOT
+npm run android:sdk:setup
+npm run android:apk:codespaces
+```

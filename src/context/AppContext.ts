@@ -8,6 +8,9 @@ interface AppContextValue {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  pendingSyncCount: number;
+  isSyncing: boolean;
+  syncNow: () => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextValue>({
@@ -17,6 +20,9 @@ export const AppContext = createContext<AppContextValue>({
   setUser: () => {},
   loading: false,
   setLoading: () => {},
+  pendingSyncCount: 0,
+  isSyncing: false,
+  syncNow: async () => {},
 });
 
 export const useAppContext = () => useContext(AppContext);

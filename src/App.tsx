@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { IonApp, setupIonicReact, IonLoading } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -13,7 +13,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import { AppContext } from './context/AppContext';
 import { useAuth } from './utils/useAuth';
 import { hasSupabaseConfig, supabase } from './utils/supabaseClient';
-import { fetchLearners } from './utils/learnerApi';
+import { fetchLearners, getPendingSyncCount, syncPendingLearners } from './utils/learnerApi';
 
 setupIonicReact({ mode: 'md' });
 
@@ -22,6 +22,9 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isLearnersLoading, setIsLearnersLoading] = useState(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const isSyncingRef = useRef(false);
   
   const { user: authUser, loading: authLoading } = useAuth((authUser) => {
     if (authUser) {
@@ -39,33 +42,74 @@ const App: React.FC = () => {
     setLoading(authLoading || isLearnersLoading);
   }, [authLoading, isLearnersLoading]);
 
+  const refreshPendingSyncCount = useCallback(async () => {
+    const count = await getPendingSyncCount();
+    setPendingSyncCount(count);
+  }, []);
+
+  const loadLearners = useCallback(
+    async (showLoader = false) => {
+      if (!authUser) {
+        setLearners([]);
+        void refreshPendingSyncCount();
+        return;
+      }
+
+      if (showLoader) {
+        setIsLearnersLoading(true);
+      }
+
+      try {
+        const data = await fetchLearners();
+        setLearners(data);
+      } catch (error) {
+        console.error('Failed to load learners:', error);
+        if (showLoader) {
+          setIsLearnersLoading(false);
+        }
+      } finally {
+        if (showLoader) {
+          setIsLearnersLoading(false);
+        }
+        void refreshPendingSyncCount();
+      }
+    },
+    [authUser, refreshPendingSyncCount],
+  );
+
+  const syncNow = useCallback(async () => {
+    if (!authUser || isSyncingRef.current) {
+      void refreshPendingSyncCount();
+      return;
+    }
+
+    isSyncingRef.current = true;
+    setIsSyncing(true);
+    try {
+      const result = await syncPendingLearners();
+      if (result.synced > 0) {
+        await loadLearners(false);
+      }
+    } catch (error) {
+      console.error('Failed to sync pending learners:', error);
+    } finally {
+      isSyncingRef.current = false;
+      setIsSyncing(false);
+      void refreshPendingSyncCount();
+    }
+  }, [authUser, loadLearners, refreshPendingSyncCount]);
+
   useEffect(() => {
     if (!authUser) {
       setLearners([]);
+      void refreshPendingSyncCount();
       return;
     }
 
     let isMounted = true;
 
-    const loadLearners = async (showLoader = false) => {
-      if (showLoader) {
-        setIsLearnersLoading(true);
-      }
-      try {
-        const data = await fetchLearners();
-        if (isMounted) {
-          setLearners(data);
-        }
-      } catch (error) {
-        console.error('Failed to load learners:', error);
-      } finally {
-        if (isMounted && showLoader) {
-          setIsLearnersLoading(false);
-        }
-      }
-    };
-
-    loadLearners(true);
+    void loadLearners(true);
+    void syncNow();
 
     const channel = supabase
       .channel(`learners-live-${authUser.id}`)
@@ -73,7 +117,9 @@ const App: React.FC = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'learners' },
         () => {
-          loadLearners();
+          if (isMounted) {
+            void loadLearners();
+          }
         }
       )
       .subscribe();
@@ -83,10 +129,72 @@ const App: React.FC = () => {
       setIsLearnersLoading(false);
       supabase.removeChannel(channel);
     };
-  }, [authUser]);
+  }, [authUser, loadLearners, refreshPendingSyncCount, syncNow]);
+
+  useEffect(() => {
+    if (!authUser || typeof window === 'undefined') return;
+
+    const refreshOnFocus = async () => {
+      try {
+        await loadLearners();
+      } catch (error) {
+        console.error('Error refreshing on focus:', error);
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    return () => window.removeEventListener('focus', refreshOnFocus);
+  }, [authUser, loadLearners]);
+
+  useEffect(() => {
+    if (!authUser || typeof window === 'undefined') return;
+
+    const handleOnline = async () => {
+      try {
+        await syncNow();
+        await loadLearners();
+      } catch (error) {
+        console.error('Error during online sync:', error);
+        setIsLearnersLoading(false);
+        isSyncingRef.current = false;
+        setIsSyncing(false);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    const interval = window.setInterval(async () => {
+      if (navigator.onLine && !isSyncingRef.current) {
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('Periodic sync error:', error);
+          isSyncingRef.current = false;
+          setIsSyncing(false);
+        }
+      }
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.clearInterval(interval);
+    };
+  }, [authUser, loadLearners, syncNow]);
 
   return (
-    <AppContext.Provider value={{ learners, setLearners, user, setUser, loading, setLoading }}>
+    <AppContext.Provider
+      value={{
+        learners,
+        setLearners,
+        user,
+        setUser,
+        loading,
+        setLoading,
+        pendingSyncCount,
+        isSyncing,
+        syncNow,
+      }}
+    >
       <IonApp>
         {!hasSupabaseConfig && (
           <div style={{
