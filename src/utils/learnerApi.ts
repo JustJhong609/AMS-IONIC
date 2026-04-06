@@ -155,7 +155,7 @@ const learnerToRow = (learner: Learner) => ({
   guardian_name: learner.guardianName ?? null,
   guardian_occupation: learner.guardianOccupation ?? null,
   school_name: learner.schoolName ?? null,
-  currently_studying: learner.currentlyStudying,
+  currently_studying: learner.currentlyStudying || 'No',
   last_grade_completed: learner.lastGradeCompleted,
   reason_for_not_attending: learner.reasonForNotAttending,
   reason_for_not_attending_other: learner.reasonForNotAttendingOther ?? null,
@@ -163,7 +163,7 @@ const learnerToRow = (learner: Learner) => ({
   occupation_type: learner.occupationType ?? null,
   employment_status: learner.employmentStatus ?? null,
   monthly_income: learner.monthlyIncome ?? null,
-  interested_in_als: learner.interestedInALS,
+  interested_in_als: learner.interestedInALS || 'No',
   contact_number: learner.contactNumber ?? null,
   distance_km: learner.distanceKm,
   travel_time: learner.travelTime,
@@ -337,7 +337,7 @@ const queueOperation = async (nextOperation: PendingLearnerOperation): Promise<v
   const existing = queue[existingIndex];
 
   if (existing.action === 'create' && nextOperation.action === 'update' && nextOperation.learner) {
-    queue[existingIndex] = { ...existing, learner: nextOperation.learner };
+    queue[existingIndex] = { ...existing, learner: nextOperation.learner, conflict: undefined };
     await writeQueue(queue);
     return;
   }
@@ -348,7 +348,7 @@ const queueOperation = async (nextOperation: PendingLearnerOperation): Promise<v
     return;
   }
 
-  queue[existingIndex] = { ...nextOperation, queuedAt: existing.queuedAt };
+  queue[existingIndex] = { ...nextOperation, queuedAt: existing.queuedAt, conflict: undefined };
   await writeQueue(queue);
 };
 
@@ -364,7 +364,11 @@ const isLikelyNetworkError = (error: unknown): boolean => {
 
 const shouldQueueInstead = (error: unknown): boolean => !isOnline() || isLikelyNetworkError(error);
 
-export const getPendingSyncCount = async (): Promise<number> => (await readQueue()).length;
+const errorMessage = (error: unknown): string =>
+  (error as { message?: string })?.message || 'Failed to sync this item. Please review and try again.';
+
+export const getPendingSyncCount = async (): Promise<number> =>
+  (await readQueue()).filter(op => !op.conflict).length;
 
 export const syncPendingLearners = async (): Promise<{
   synced: number;
@@ -423,7 +427,8 @@ export const syncPendingLearners = async (): Promise<{
         remaining.push(operation, ...pendingQueue.slice(i + 1));
         break;
       }
-      remaining.push(operation);
+      // Permanent (non-network) errors should not retry forever.
+      remaining.push(markConflict(operation, errorMessage(error)));
     }
   }
 
@@ -431,7 +436,7 @@ export const syncPendingLearners = async (): Promise<{
   return {
     synced,
     failed,
-    pending: remaining.length,
+    pending: remaining.filter(op => !op.conflict).length,
   };
 };
 

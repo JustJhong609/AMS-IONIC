@@ -87,7 +87,7 @@ const HomePage: React.FC = () => {
                 </div>
                 {!isOffline && (
                   <IonButton
-                    fill="clear"
+                    fill="solid"
                     size="small"
                     onClick={() => { void syncNow(); }}
                     disabled={isSyncing}
@@ -299,24 +299,29 @@ const s: Record<string, React.CSSProperties> = {
     marginTop: 8,
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+    width: '100%',
   },
   syncNoticeText: {
     fontSize: 11,
     color: 'rgba(255,255,255,0.86)',
     fontWeight: 700,
+    flex: 1,
   },
   syncNowBtn: {
-    '--color': '#ffffff',
-    '--background': 'rgba(255,255,255,0.16)',
-    '--background-activated': 'rgba(255,255,255,0.2)',
+    '--color': '#0f172a',
+    '--background': '#FFD54F',
+    '--background-activated': '#FFCA28',
     '--border-radius': '999px',
-    '--padding-start': '10px',
-    '--padding-end': '10px',
-    height: 24,
-    fontSize: 11,
-    fontWeight: 700,
+    '--padding-start': '12px',
+    '--padding-end': '12px',
+    '--box-shadow': '0 4px 14px rgba(0,0,0,0.28)',
+    height: 30,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.3,
+    flexShrink: 0,
   } as React.CSSProperties,
   statsRow: {
     display: 'flex', gap: 10, padding: '12px 16px',

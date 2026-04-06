@@ -3,17 +3,17 @@ import {
   IonPage, IonHeader, IonToolbar, IonContent, IonButtons,
   IonBackButton, IonSearchbar, IonFab, IonFabButton, IonIcon,
   IonCard, IonCardContent, IonAvatar, IonText, IonAlert,
-  IonButton, IonLoading,
+  IonButton, IonLoading, IonRefresher, IonRefresherContent,
 } from '@ionic/react';
 import { add, pencilOutline, trashOutline, personOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Learner } from '../types';
 import { DISTRICT } from '../utils/constants';
-import { deleteLearner } from '../utils/learnerApi';
+import { deleteLearner, fetchLearners } from '../utils/learnerApi';
 
 const LearnerListPage: React.FC = () => {
-  const { learners, user } = useAppContext();
+  const { learners, user, setLearners } = useAppContext();
   const history = useHistory();
   const [query, setQuery]         = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Learner | null>(null);
@@ -42,6 +42,17 @@ const LearnerListPage: React.FC = () => {
       setDeleteError(error?.message || 'Failed to delete learner. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleRefresh = async (event: CustomEvent) => {
+    try {
+      const latestLearners = await fetchLearners();
+      setLearners(latestLearners);
+    } catch (error) {
+      console.error('Failed to refresh learners:', error);
+    } finally {
+      (event.target as HTMLIonRefresherElement).complete();
     }
   };
 
@@ -74,6 +85,13 @@ const LearnerListPage: React.FC = () => {
       </IonHeader>
 
       <IonContent>
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent
+            pullingText="Pull to refresh"
+            refreshingSpinner="crescent"
+            refreshingText="Refreshing learners..."
+          />
+        </IonRefresher>
 
         {filtered.length === 0 ? (
           <EmptyState hasLearners={learners.length > 0} onAdd={() => history.push('/learners/new')} />

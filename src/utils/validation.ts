@@ -10,7 +10,6 @@ export const validatePersonalInfo = (d: LearnerFormData): ValidationResult => {
   const e: Record<string, string> = {};
   if (!d.lastName.trim())    e.lastName    = 'Last name is required';
   if (!d.firstName.trim())   e.firstName   = 'First name is required';
-  if (!d.middleName.trim())  e.middleName  = 'Middle name is required';
   if (!d.sex)                e.sex         = 'Sex is required';
   if (!d.civilStatus)        e.civilStatus = 'Civil status is required';
   if (!d.birthdate)          e.birthdate   = 'Birthdate is required';

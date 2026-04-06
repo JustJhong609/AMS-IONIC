@@ -17,12 +17,12 @@ import AddressSection     from '../components/form/AddressSection';
 import FamilySection      from '../components/form/FamilySection';
 import LogisticsSection   from '../components/form/LogisticsSection';
 import { BARANGAY_OPTIONS, MOTHER_TONGUE_OPTIONS } from '../utils/constants';
-import { createLearner, updateLearner } from '../utils/learnerApi';
+import { createLearner, fetchLearners, updateLearner } from '../utils/learnerApi';
 
 const TOTAL_STEPS = 5;
 
 const LearnerFormPage: React.FC = () => {
-  const { learners, user } = useAppContext();
+  const { learners, user, setLearners } = useAppContext();
   const history  = useHistory();
   const { id }   = useParams<{ id?: string }>();
 
@@ -139,9 +139,12 @@ const LearnerFormPage: React.FC = () => {
       formData.barangay === OTHER_OPTION && formData.barangayOther.trim()
         ? formData.barangayOther.trim()
         : formData.barangay;
+    const resolvedCurrentlyStudying = formData.currentlyStudying || 'No';
+    const resolvedInterestedInALS = formData.interestedInALS || 'No';
 
     const learner: Learner = {
       id: existingLearner?.id || generateId(),
+      createdBy: existingLearner?.createdBy || user?.id,
       updatedAt: existingLearner?.updatedAt,
       region:    formData.region,
       division:  formData.division,
@@ -172,7 +175,7 @@ const LearnerFormPage: React.FC = () => {
       motherName: formData.motherName.trim() || undefined,
       guardianName: formData.guardianName.trim() || undefined,
       guardianOccupation: formData.guardianOccupation.trim() || undefined,
-      currentlyStudying: formData.currentlyStudying,
+      currentlyStudying: resolvedCurrentlyStudying,
       lastGradeCompleted: formData.lastGradeCompleted,
       reasonForNotAttending: formData.reasonForNotAttending,
       reasonForNotAttendingOther: formData.reasonForNotAttendingOther.trim() || undefined,
@@ -181,7 +184,7 @@ const LearnerFormPage: React.FC = () => {
       occupationType: formData.occupationType || undefined,
       employmentStatus: formData.employmentStatus || undefined,
       monthlyIncome: formData.monthlyIncome.trim() || undefined,
-      interestedInALS: formData.interestedInALS,
+      interestedInALS: resolvedInterestedInALS,
       contactNumber: formData.contactNumber.trim() || undefined,
       distanceKm: parseFloat(formData.distanceKm),
       travelTime: formData.travelTime.trim(),
@@ -196,6 +199,11 @@ const LearnerFormPage: React.FC = () => {
       } else {
         await createLearner(learner);
       }
+
+      // Refresh global learner list immediately so list page reflects latest data without app restart.
+      const latestLearners = await fetchLearners();
+      setLearners(latestLearners);
+
       setShowSaveAlert(false);
       history.replace('/learners');
     } catch (error: any) {

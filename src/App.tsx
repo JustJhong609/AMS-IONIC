@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { IonApp, setupIonicReact, IonLoading } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [isLearnersLoading, setIsLearnersLoading] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const isSyncingRef = useRef(false);
   
   const { user: authUser, loading: authLoading } = useAuth((authUser) => {
     if (authUser) {
@@ -63,6 +64,9 @@ const App: React.FC = () => {
         setLearners(data);
       } catch (error) {
         console.error('Failed to load learners:', error);
+        if (showLoader) {
+          setIsLearnersLoading(false);
+        }
       } finally {
         if (showLoader) {
           setIsLearnersLoading(false);
@@ -74,11 +78,12 @@ const App: React.FC = () => {
   );
 
   const syncNow = useCallback(async () => {
-    if (!authUser || isSyncing) {
+    if (!authUser || isSyncingRef.current) {
       void refreshPendingSyncCount();
       return;
     }
 
+    isSyncingRef.current = true;
     setIsSyncing(true);
     try {
       const result = await syncPendingLearners();
@@ -88,10 +93,11 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Failed to sync pending learners:', error);
     } finally {
+      isSyncingRef.current = false;
       setIsSyncing(false);
       void refreshPendingSyncCount();
     }
-  }, [authUser, isSyncing, loadLearners, refreshPendingSyncCount]);
+  }, [authUser, loadLearners, refreshPendingSyncCount]);
 
   useEffect(() => {
     if (!authUser) {
@@ -128,16 +134,44 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!authUser || typeof window === 'undefined') return;
 
-    const handleOnline = () => {
-      void syncNow();
-      void loadLearners();
+    const refreshOnFocus = async () => {
+      try {
+        await loadLearners();
+      } catch (error) {
+        console.error('Error refreshing on focus:', error);
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    return () => window.removeEventListener('focus', refreshOnFocus);
+  }, [authUser, loadLearners]);
+
+  useEffect(() => {
+    if (!authUser || typeof window === 'undefined') return;
+
+    const handleOnline = async () => {
+      try {
+        await syncNow();
+        await loadLearners();
+      } catch (error) {
+        console.error('Error during online sync:', error);
+        setIsLearnersLoading(false);
+        isSyncingRef.current = false;
+        setIsSyncing(false);
+      }
     };
 
     window.addEventListener('online', handleOnline);
 
-    const interval = window.setInterval(() => {
-      if (navigator.onLine) {
-        void syncNow();
+    const interval = window.setInterval(async () => {
+      if (navigator.onLine && !isSyncingRef.current) {
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('Periodic sync error:', error);
+          isSyncingRef.current = false;
+          setIsSyncing(false);
+        }
       }
     }, 30000);
 
