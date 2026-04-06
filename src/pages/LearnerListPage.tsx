@@ -4,30 +4,57 @@ import {
   IonBackButton, IonSearchbar, IonFab, IonFabButton, IonIcon,
   IonCard, IonCardContent, IonAvatar, IonText, IonAlert,
   IonButton, IonLoading, IonRefresher, IonRefresherContent,
+  IonChip, IonLabel,
 } from '@ionic/react';
-import { add, pencilOutline, trashOutline, personOutline } from 'ionicons/icons';
+import { add, pencilOutline, trashOutline, personOutline, filterOutline, closeOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Learner } from '../types';
-import { DISTRICT } from '../utils/constants';
+import { DISTRICT, BARANGAY_OPTIONS } from '../utils/constants';
 import { deleteLearner, fetchLearners } from '../utils/learnerApi';
 
 const LearnerListPage: React.FC = () => {
   const { learners, user, setLearners } = useAppContext();
   const history = useHistory();
   const [query, setQuery]         = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterSex, setFilterSex] = useState<string>('');
+  const [filterEducation, setFilterEducation] = useState<string>('');
+  const [filterBarangay, setFilterBarangay] = useState<string>('');
   const [deleteTarget, setDeleteTarget] = useState<Learner | null>(null);
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = learners.filter(l => {
     const q = query.toLowerCase();
-    return (
+    
+    // Text search
+    const matchesText = 
       l.firstName.toLowerCase().includes(q) ||
       l.lastName.toLowerCase().includes(q) ||
-      l.middleName.toLowerCase().includes(q)
-    );
+      l.middleName.toLowerCase().includes(q);
+    
+    if (!matchesText) return false;
+    
+    // Sex filter
+    if (filterSex && l.sex !== filterSex) return false;
+    
+    // Education filter
+    if (filterEducation === 'Elementary' && l.lastGradeCompleted !== 'G1 – G6 (Elementary)') return false;
+    if (filterEducation === 'JHS' && 
+      !(l.lastGradeCompleted?.includes('1st Year HS') || 
+        l.lastGradeCompleted?.includes('2nd Year HS') || 
+        l.lastGradeCompleted?.includes('3rd Year HS'))) return false;
+    if (filterEducation === 'BLP' && !l.isBlp) return false;
+    
+    // Barangay filter
+    if (filterBarangay && l.barangay !== filterBarangay) return false;
+    
+    return true;
   });
+
+  const activeFilterCount = [filterSex, filterEducation, filterBarangay].filter(f => f).length;
+  const hasActiveFilters = activeFilterCount > 0;
 
   const initials = (l: Learner) =>
     `${l.firstName.charAt(0)}${l.lastName.charAt(0)}`.toUpperCase();
@@ -80,8 +107,97 @@ const LearnerListPage: React.FC = () => {
             onIonInput={e => setQuery(e.detail.value!)}
             placeholder="Search learners by name…"
             debounce={150}
+            showCancelButton="focus"
+            style={styles.searchbar}
           />
         </IonToolbar>
+        
+        {/* Filter Toggle Button */}
+        <div style={styles.filterToggleBar}>
+          <IonButton
+            fill="clear"
+            size="small"
+            onClick={() => setShowFilters(!showFilters)}
+            style={{ '--padding-start': '8px', '--padding-end': '8px' } as any}
+          >
+            <IonIcon icon={filterOutline} slot="start" />
+            Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </IonButton>
+          {hasActiveFilters && (
+            <IonButton
+              fill="clear"
+              size="small"
+              color="medium"
+              onClick={() => {
+                setFilterSex('');
+                setFilterEducation('');
+                setFilterBarangay('');
+              }}
+              style={{ '--padding-start': '4px', '--padding-end': '8px' } as any}
+            >
+              Clear
+            </IonButton>
+          )}
+        </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div style={styles.filterPanel}>
+            <div style={styles.filterSection}>
+              <div style={styles.filterLabel}>Gender</div>
+              <div style={styles.filterChips}>
+                {['Male', 'Female'].map(sex => (
+                  <IonChip
+                    key={sex}
+                    onClick={() => setFilterSex(filterSex === sex ? '' : sex)}
+                    style={{
+                      background: filterSex === sex ? 'var(--ion-color-primary)' : '#e0e0e0',
+                      color: filterSex === sex ? '#fff' : '#333',
+                    }}
+                  >
+                    <IonLabel>{sex}</IonLabel>
+                  </IonChip>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.filterSection}>
+              <div style={styles.filterLabel}>Education Level</div>
+              <div style={styles.filterChips}>
+                {['Elementary', 'JHS', 'BLP'].map(edu => (
+                  <IonChip
+                    key={edu}
+                    onClick={() => setFilterEducation(filterEducation === edu ? '' : edu)}
+                    style={{
+                      background: filterEducation === edu ? 'var(--ion-color-primary)' : '#e0e0e0',
+                      color: filterEducation === edu ? '#fff' : '#333',
+                    }}
+                  >
+                    <IonLabel>{edu}</IonLabel>
+                  </IonChip>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.filterSection}>
+              <div style={styles.filterLabel}>Barangay</div>
+              <div style={styles.filterChips}>
+                {BARANGAY_OPTIONS.map(brgy => (
+                  <IonChip
+                    key={brgy}
+                    onClick={() => setFilterBarangay(filterBarangay === brgy ? '' : brgy)}
+                    style={{
+                      background: filterBarangay === brgy ? 'var(--ion-color-primary)' : '#e0e0e0',
+                      color: filterBarangay === brgy ? '#fff' : '#333',
+                    }}
+                  >
+                    <IonLabel>{brgy}</IonLabel>
+                  </IonChip>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </IonHeader>
 
       <IonContent>
@@ -277,6 +393,44 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  searchbar: {
+    '--background': '#f5f5f5',
+    '--border-radius': '24px',
+    '--padding-start': '16px',
+    '--padding-end': '16px',
+    '--box-shadow': 'none',
+  } as React.CSSProperties,
+  filterToggleBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
+    borderBottom: '1px solid #e0e0e0',
+  },
+  filterPanel: {
+    padding: '12px 16px',
+    background: '#fafafa',
+    borderBottom: '1px solid #e0e0e0',
+  },
+  filterSection: {
+    marginBottom: 12,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  filterChips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
   },
 };
 

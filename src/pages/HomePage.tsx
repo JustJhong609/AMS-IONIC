@@ -21,10 +21,16 @@ const HomePage: React.FC = () => {
   const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const currentYear = new Date().getFullYear();
   const total   = learners.length;
-  const males   = learners.filter(l => l.sex === 'Male').length;
-  const females = learners.filter(l => l.sex === 'Female').length;
   const firstName = user?.name.split(' ')[0] ?? 'there';
   const initials  = user?.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
+
+  const elementary = learners.filter(l => l.lastGradeCompleted === 'G1 – G6 (Elementary)').length;
+  const jhs = learners.filter(l => 
+    l.lastGradeCompleted?.includes('1st Year HS') || 
+    l.lastGradeCompleted?.includes('2nd Year HS') || 
+    l.lastGradeCompleted?.includes('3rd Year HS')
+  ).length;
+  const blp = learners.filter(l => l.isBlp).length;
 
   const menuItems = [
     { icon: personAddOutline,         label: 'Add New Learner',  desc: 'Map a new ALS learner using Form 1',              color: '#2E7D32', grad: 'linear-gradient(135deg,#43A047,#2E7D32)', path: '/learners/new' },
@@ -105,9 +111,10 @@ const HomePage: React.FC = () => {
         {/* ── Quick Stats ── */}
         <div style={s.statsRow}>
           {[
-            { icon: peopleOutline,  val: total,   label: 'Total',  color: '#1565C0' },
-            { icon: personOutline,  val: males,   label: 'Male',   color: '#1976D2' },
-            { icon: personOutline,  val: females, label: 'Female', color: '#7B1FA2' },
+            { icon: peopleOutline,  val: total,      label: 'Total',      color: '#1565C0' },
+            { icon: personOutline,  val: elementary, label: 'Elementary', color: '#1976D2' },
+            { icon: personOutline,  val: jhs,        label: 'JHS',        color: '#7B1FA2' },
+            { icon: personOutline,  val: blp,        label: 'BLP',        color: '#F57C00' },
           ].map(st => (
             <div key={st.label} style={s.statCard}>
               <div style={{ ...s.statIcon, background: `${st.color}18` }}>
