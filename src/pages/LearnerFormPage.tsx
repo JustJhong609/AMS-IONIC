@@ -142,6 +142,7 @@ const LearnerFormPage: React.FC = () => {
 
     const learner: Learner = {
       id: existingLearner?.id || generateId(),
+      updatedAt: existingLearner?.updatedAt,
       region:    formData.region,
       division:  formData.division,
       district:  formData.district,

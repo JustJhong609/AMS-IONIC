@@ -7,7 +7,7 @@ import {
 import {
   personAddOutline, listOutline, barChartOutline, informationCircleOutline,
   chevronForwardOutline, logOutOutline, peopleOutline,
-  personOutline, closeOutline,
+  personOutline, closeOutline, syncOutline,
 } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -15,9 +15,10 @@ import { DISTRICT, DIVISION, REGION, BARANGAY_OPTIONS } from '../utils/constants
 import { signOut } from '../utils/supabaseAuth';
 
 const HomePage: React.FC = () => {
-  const { learners, user } = useAppContext();
+  const { learners, user, pendingSyncCount, isSyncing, syncNow } = useAppContext();
   const history = useHistory();
   const [showAbout, setShowAbout] = useState(false);
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const currentYear = new Date().getFullYear();
   const total   = learners.length;
   const males   = learners.filter(l => l.sex === 'Male').length;
@@ -77,6 +78,27 @@ const HomePage: React.FC = () => {
                 ? `You have ${total} mapped learner${total !== 1 ? 's' : ''} so far.`
                 : 'Get started by mapping your first learner.'}
             </div>
+            {(isOffline || pendingSyncCount > 0) && (
+              <div style={s.syncNoticeRow}>
+                <div style={s.syncNoticeText}>
+                  {isOffline
+                    ? `Offline mode: ${pendingSyncCount} pending sync ${pendingSyncCount === 1 ? 'item' : 'items'}`
+                    : `${pendingSyncCount} pending sync ${pendingSyncCount === 1 ? 'item' : 'items'}`}
+                </div>
+                {!isOffline && (
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={() => { void syncNow(); }}
+                    disabled={isSyncing}
+                    style={s.syncNowBtn}
+                  >
+                    <IonIcon slot="start" icon={syncOutline} />
+                    {isSyncing ? 'Syncing...' : 'Sync now'}
+                  </IonButton>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -273,6 +295,29 @@ const s: Record<string, React.CSSProperties> = {
   },
   greeting: { fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: -0.3 },
   subGreeting: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 3, fontWeight: 500 },
+  syncNoticeRow: {
+    marginTop: 8,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  syncNoticeText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.86)',
+    fontWeight: 700,
+  },
+  syncNowBtn: {
+    '--color': '#ffffff',
+    '--background': 'rgba(255,255,255,0.16)',
+    '--background-activated': 'rgba(255,255,255,0.2)',
+    '--border-radius': '999px',
+    '--padding-start': '10px',
+    '--padding-end': '10px',
+    height: 24,
+    fontSize: 11,
+    fontWeight: 700,
+  } as React.CSSProperties,
   statsRow: {
     display: 'flex', gap: 10, padding: '12px 16px',
   },
